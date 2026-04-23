@@ -1,0 +1,27 @@
+# dependencies
+node_modules
+
+# build outputs
+dist
+.next
+.turbo
+coverage
+
+# environment
+.env
+.env.local
+.env.development
+.env.production
+
+# logs
+*.log
+pnpm-debug.log*
+
+# system
+.DS_Store
+
+.__*
+tsconfig.tsbuildinfo
+.vercel
+.env*.local
+backups
