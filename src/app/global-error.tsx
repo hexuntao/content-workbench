@@ -17,10 +17,10 @@ export default function GlobalErrorPage({ error, reset }: GlobalErrorPageProps):
       <body className="app-body">
         <div className="app-canvas">
           <ErrorView
-            actionLabel="Reload Shell"
-            description="A root-level error interrupted the application shell before the page could load."
+            actionLabel="重新加载壳层"
+            description="页面尚未载入前，根级错误已经中断了应用壳层。"
             onAction={reset}
-            title="Application shell failed"
+            title="应用壳层加载失败"
           />
         </div>
       </body>

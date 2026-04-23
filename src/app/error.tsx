@@ -18,10 +18,10 @@ export default function RootErrorPage({ error, reset }: RootErrorPageProps): Rea
 
   return (
     <ErrorView
-      actionLabel="Retry Render"
-      description="The application shell hit an unexpected error while composing the page."
+      actionLabel="重试渲染"
+      description="应用壳层在组合当前页面时遇到了一个未预期错误。"
       onAction={reset}
-      title="Unable to render this view"
+      title="当前视图无法完成渲染"
     />
   );
 }

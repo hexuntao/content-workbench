@@ -14,7 +14,7 @@ export function DashboardNav({ items }: DashboardNavProps): React.JSX.Element {
   const pathname = usePathname();
 
   return (
-    <nav aria-label="Dashboard sections" className="dashboard-nav">
+    <nav aria-label="工作区分区导航" className="dashboard-nav">
       <ul className="dashboard-nav__list">
         {items.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);

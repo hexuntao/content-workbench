@@ -15,7 +15,7 @@ export function ErrorView({
     <main className="state-shell" id="main-content">
       <section className="error-state">
         <div className="error-state__signal" />
-        <p className="meta-label">Application Error</p>
+        <p className="meta-label">应用错误</p>
         <h1>{title}</h1>
         <p>{description}</p>
         <button className="button-link" onClick={onAction} type="button">

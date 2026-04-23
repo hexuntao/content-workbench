@@ -15,45 +15,39 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
       <aside className="app-sidebar">
         <div className="app-sidebar__masthead">
           <Link className="app-brand" href="/">
-            <span className="app-brand__eyebrow">Content Workbench</span>
-            <strong>Editorial Desk Shell</strong>
+            <span className="app-brand__eyebrow">内容工作台</span>
+            <strong>编辑台共享底座</strong>
           </Link>
           <p className="app-sidebar__copy">
-            Thread 1 owns the routing frame, shared surfaces, and the design contract that later
-            feature threads inherit.
+            线程 1 负责路由框架、共享表面语言和设计合同，后续功能线程直接继承这一层基础。
           </p>
         </div>
 
         <div className="app-sidebar__section">
           <div className="app-sidebar__section-heading">
-            <p className="meta-label">Desk Index</p>
-            <p>Shared routes and long-lived shell primitives.</p>
+            <p className="meta-label">工作区索引</p>
+            <p>共享路由与长期稳定的壳层原语。</p>
           </div>
           <DashboardNav items={dashboardNavItems} />
         </div>
 
         <div className="app-sidebar__stack">
           <section className="app-sidebar__note">
-            <p className="meta-label">Foundation Note</p>
+            <p className="meta-label">基础说明</p>
             <p>
-              Layout, empty states, errors, loading, and navigation stay centralized here so Topics,
-              Drafts, Review, and Publish can inherit a stable visual base.
+              布局、空状态、错误页、加载态和导航统一收敛在这里，方便选题、成稿、审核、发布直接承接。
             </p>
           </section>
 
           <section className="app-sidebar__note app-sidebar__note--quiet">
-            <p className="meta-label">Working Rule</p>
-            <p>
-              Shared shell pieces should describe layout and reading rhythm, never feature-specific
-              business states.
-            </p>
+            <p className="meta-label">工作规则</p>
+            <p>共享壳只描述布局、阅读节奏和工作台语法，不提前写死任何功能分区的业务状态。</p>
           </section>
 
           <section className="app-sidebar__note app-sidebar__note--quiet">
-            <p className="meta-label">Contract</p>
+            <p className="meta-label">设计合同</p>
             <p>
-              `DESIGN.md` defines the shell language so future routes extend one system instead of
-              layering local styles on top.
+              `DESIGN.md` 负责定义这套壳层语言，后续路由在一个系统内扩展，而不是不断叠加局部样式。
             </p>
           </section>
         </div>
@@ -62,31 +56,31 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
       <div className="app-main">
         <header className="app-header">
           <div className="app-header__lead">
-            <p className="kicker">Editorial Workspace</p>
-            <h1>Shared shell for parallel content threads</h1>
+            <p className="kicker">编辑工作区</p>
+            <h1>为并行内容线程准备的共享壳层</h1>
             <p className="app-header__copy">
-              A modern content workbench needs a calm frame, sharp type hierarchy, and predictable
-              section rhythm before feature teams add dense data views.
+              参考 Sanity Studio、Notion 和近期 Linear
+              的界面收敛方式，这个壳层优先保证冷静框架、清晰层级和稳定节奏，再承载高密度内容视图。
             </p>
           </div>
           <div className="app-header__body">
             <div className="app-header__meta">
-              <span className="workspace-chip">Calm density</span>
-              <span className="workspace-chip">Sharp hierarchy</span>
-              <span className="workspace-chip">Editorial shell</span>
+              <span className="workspace-chip">冷静密度</span>
+              <span className="workspace-chip">清晰层级</span>
+              <span className="workspace-chip">编辑台底座</span>
             </div>
             <div className="app-header__detail">
               <div className="app-header__stat">
-                <span>Owner</span>
-                <strong>Thread 1 / shared shell</strong>
+                <span>负责范围</span>
+                <strong>线程 1 / 共享壳层</strong>
               </div>
               <div className="app-header__stat">
-                <span>Scope</span>
-                <strong>Layout, tokens, primitives</strong>
+                <span>建设内容</span>
+                <strong>布局、设计变量、共享原语</strong>
               </div>
               <div className="app-header__stat">
-                <span>Contract</span>
-                <strong>Design system written in `DESIGN.md`</strong>
+                <span>约束来源</span>
+                <strong>以 `DESIGN.md` 为设计合同</strong>
               </div>
             </div>
           </div>

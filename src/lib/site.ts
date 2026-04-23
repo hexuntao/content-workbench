@@ -1,5 +1,4 @@
 export const siteConfig = {
-  name: "Content Workbench",
-  description:
-    "An editorial workspace shell for content planning, drafting, review, and publishing flows.",
+  name: "内容工作台",
+  description: "用于选题、成稿、审核与发布流转的内容编辑工作台基础壳层。",
 } as const;

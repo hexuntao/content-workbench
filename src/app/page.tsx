@@ -7,54 +7,51 @@ import { designTokenGroups, editorialPrinciples } from "@/lib/theme/foundation";
 export default function HomePage(): React.JSX.Element {
   const publicEnv = getPublicEnv();
   const shellRules = [
-    "One accent in the shell. Everything else should come from ink, paper, tray, and rule tones.",
-    "Rows, rails, split stages, and notes matter more than generic cards.",
-    "Later threads should inherit structure and rhythm, not invent another visual system.",
+    "全局只保留一个强调色，其余层次通过纸面、墨色、托盘和规则线建立。",
+    "列表行、导航轨、分栏开场区和注记层，比泛用卡片更重要。",
+    "后续线程应该继承结构和节奏，而不是重新发明一套视觉系统。",
   ] as const;
-  const referenceBlend = ["Notion warmth", "HashiCorp structure", "Sanity framing"] as const;
+  const referenceBlend = ["Notion 的温暖组织", "Sanity 的内容工作区", "Linear 的冷静收敛"] as const;
 
   return (
     <main className="home-shell" id="main-content">
       <section className="hero-panel hero-panel--primary">
         <div className="hero-copy">
-          <p className="kicker">Thread 1 / Editorial Workspace Foundation</p>
+          <p className="kicker">线程 1 / 设计底座修正</p>
           <h1>{siteConfig.name}</h1>
           <p className="lede">
-            A content desk shell for Topics, Drafts, Review, and Publish. The base should feel like
-            an editorial workspace with measured hierarchy, disciplined surfaces, and a clear
-            reading rhythm instead of a generic admin dashboard.
+            面向选题、成稿、审核与发布链路的内容工作台底座。它不该像默认后台模板，而应该像一个冷静、克制、可承载高密度信息的中文编辑台。
           </p>
           <p className="hero-copy__support">
-            Thread 1 defines the shell, not the business. Later threads should be able to plug in
-            dense views, filters, actions, and empty states without fighting the layout or inventing
-            a second visual system.
+            线程 1
+            负责把壳层、设计变量、布局语法和状态页先定稳。后续线程只需要接内容、操作和数据，不需要再推翻视觉基础重来。
           </p>
           <div className="action-row">
             <Link className="button-link" href="/topics">
-              Open the Desk
+              打开工作台
             </Link>
             <Link className="button-link button-link--secondary" href="/settings">
-              Inspect the Shell
+              查看共享壳层
             </Link>
           </div>
         </div>
         <aside className="hero-docket">
           <div className="meta-block">
-            <span className="meta-label">Desk Brief</span>
-            <strong>Modern editorial shell, not a templated SaaS frame</strong>
+            <span className="meta-label">工作台摘要</span>
+            <strong>更像编辑台 / 审稿台，而不是套模板的通用后台</strong>
           </div>
           <div className="meta-grid">
             <div className="meta-block">
-              <span>Base URL</span>
+              <span>当前地址</span>
               <strong>{publicEnv.appUrl}</strong>
             </div>
             <div className="meta-block">
-              <span>Owned Boundary</span>
-              <strong>`src/app` + shared layout and style primitives</strong>
+              <span>负责边界</span>
+              <strong>`src/app` 与共享布局 / 样式原语</strong>
             </div>
             <div className="meta-block">
-              <span>Design Axis</span>
-              <strong>Editorial, premium, calm, sharp, high signal density</strong>
+              <span>设计关键词</span>
+              <strong>编辑感、高级感、冷静、锐利、高信噪比</strong>
             </div>
           </div>
           <div className="manifest-list">
@@ -71,8 +68,8 @@ export default function HomePage(): React.JSX.Element {
       <div className="home-foundation-grid">
         <section className="editorial-panel editorial-panel--outline home-ledger">
           <div className="panel-heading">
-            <p className="meta-label">Route Ledger</p>
-            <h2>Shared desk sections ready for downstream threads</h2>
+            <p className="meta-label">工作区总账</p>
+            <h2>已经为后续线程预留好的共享路由与工作区入口</h2>
           </div>
 
           <div className="feature-list">
@@ -84,7 +81,7 @@ export default function HomePage(): React.JSX.Element {
                   <h3>{item.title}</h3>
                   <p>{item.description}</p>
                 </div>
-                <span className="feature-card__link">Open section</span>
+                <span className="feature-card__link">进入分区</span>
               </Link>
             ))}
           </div>
@@ -92,8 +89,8 @@ export default function HomePage(): React.JSX.Element {
 
         <section className="editorial-panel editorial-panel--muted home-note">
           <div className="panel-heading">
-            <p className="meta-label">Design Contract</p>
-            <h2>Shared UI now has a written rulebook in `DESIGN.md`</h2>
+            <p className="meta-label">设计合同</p>
+            <h2>共享 UI 现在有了项目级的 `DESIGN.md` 规则文件</h2>
           </div>
 
           <div className="principle-list">
@@ -102,7 +99,7 @@ export default function HomePage(): React.JSX.Element {
                 <p className="principle-card__index">{String(index + 1).padStart(2, "0")}</p>
                 <div className="principle-card__body">
                   <h3>{reference}</h3>
-                  <p>Used as a reference input, not as a brand skin to copy literally.</p>
+                  <p>作为设计判断输入使用，不做品牌皮肤级照搬。</p>
                 </div>
               </article>
             ))}
@@ -113,8 +110,8 @@ export default function HomePage(): React.JSX.Element {
       <div className="home-grid">
         <section className="editorial-panel editorial-panel--raised">
           <div className="panel-heading">
-            <p className="meta-label">Foundation</p>
-            <h2>What this UI base is optimizing for</h2>
+            <p className="meta-label">底座目标</p>
+            <h2>这一层共享 UI 正在优先解决什么问题</h2>
           </div>
 
           <div className="principle-list">
@@ -132,8 +129,8 @@ export default function HomePage(): React.JSX.Element {
 
         <section className="editorial-panel editorial-panel--muted">
           <div className="panel-heading">
-            <p className="meta-label">Token System</p>
-            <h2>Global tokens later threads can reuse without rewriting the shell</h2>
+            <p className="meta-label">设计变量</p>
+            <h2>后续线程可以直接复用的全局设计变量，而不是重写壳层</h2>
           </div>
 
           <div className="token-list">

@@ -11,33 +11,31 @@ export type DesignTokenGroup = {
 
 export const editorialPrinciples: EditorialPrinciple[] = [
   {
-    title: "Calm Control",
+    title: "冷静控制感",
     description:
-      "Information should feel edited, not decorated. Strong typography and restrained contrast keep dense content readable without turning the shell into a gallery.",
+      "信息应该呈现为经过编辑，而不是经过装饰。用明确的字重、节制的对比和稳定的节奏承接高密度内容，而不是把页面做成展板。",
   },
   {
-    title: "Desk-Like Surfaces",
+    title: "桌面式层次",
     description:
-      "Surfaces should feel like paper, tray, rail, and annotation layers. Generic SaaS cards flatten hierarchy and make every region compete for the same attention.",
+      "界面层次应当像纸面、托盘、导航轨和批注层协同工作。通用 SaaS 卡片会抹平层级，让所有区域都在争抢同一份注意力。",
   },
   {
-    title: "Reusable Rhythm",
+    title: "可复用节奏",
     description:
-      "Route shells, navigation, empty states, and loading states share one cadence so later feature threads can add information without inventing a second visual system.",
+      "路由壳、导航、空状态和加载状态应共享同一套节奏，这样后续线程只需要补充内容，不需要再发明第二套视觉系统。",
   },
 ];
 
 export const designTokenGroups: DesignTokenGroup[] = [
   {
-    name: "Color Tokens",
-    description:
-      "Warm canvas, disciplined ink, and one restrained accent define the emotional temperature of the workbench.",
+    name: "颜色变量",
+    description: "暖纸面底色、克制的墨色与单一强调色，共同决定工作台的情绪温度。",
     tokens: ["--color-canvas", "--color-surface-raised", "--color-ink", "--color-accent"],
   },
   {
-    name: "Surface Tokens",
-    description:
-      "Distinct paper, tray, and inset layers create hierarchy without relying on heavy borders or identical cards.",
+    name: "表面变量",
+    description: "纸面、托盘、内嵌层的明确区分，可以在不依赖厚重边框和重复卡片的前提下建立层级。",
     tokens: [
       "--color-surface-base",
       "--color-surface-panel",
@@ -46,21 +44,20 @@ export const designTokenGroups: DesignTokenGroup[] = [
     ],
   },
   {
-    name: "Rhythm Tokens",
-    description:
-      "A single spacing scale aligns shell density, page breathing room, and grouping cadence across all shared routes.",
+    name: "节奏变量",
+    description: "统一的间距刻度负责对齐壳层密度、页面留白和内容分组节奏。",
     tokens: ["--space-2", "--space-4", "--space-6", "--space-8"],
   },
   {
-    name: "Radius & Depth",
+    name: "圆角与深度",
     description:
-      "Major panels, trays, rails, and utility elements use different radii and shadow levels so the shell does not collapse into one generic surface treatment.",
+      "主面板、托盘、导航轨和工具层要使用不同的圆角与深度，不让整个壳层塌成一种泛用表面。",
     tokens: ["--radius-sm", "--radius-lg", "--shadow-1", "--shadow-3"],
   },
   {
-    name: "Type & Width",
+    name: "字体与宽度",
     description:
-      "Display, UI, mono, reading width, and shell width tokens establish the workbench voice and structural limits.",
+      "标题字体、界面字体、等宽字体、阅读宽度和壳层宽度共同定义工作台的语言气质与结构边界。",
     tokens: ["--font-display", "--font-ui", "--measure-reading", "--container-shell"],
   },
 ];

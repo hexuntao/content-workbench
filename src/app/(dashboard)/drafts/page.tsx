@@ -3,14 +3,14 @@ import { DashboardSectionPage } from "@/components/layout/dashboard-section-page
 export default function DraftsPage(): React.JSX.Element {
   return (
     <DashboardSectionPage
-      description="This shell gives Drafts a stable layout surface for detail pages, rewrite controls, and package previews once Thread 4 lands feature modules."
-      eyebrow="Thread 4 / Drafts"
+      description="这个壳层为成稿详情、改写控制和包装预览预留了稳定布局，等待线程 4 的功能模块直接接入。"
+      eyebrow="线程 4 / 成稿"
       highlights={[
-        "Dashboard chrome is shared across sections.",
-        "Placeholder content avoids inventing rewrite or packaging states.",
-        "The route is ready for feature-level composition.",
+        "工作台框架在所有分区之间共享。",
+        "占位内容刻意不预设改写或包装状态。",
+        "该路由已经可以承接功能级组合。",
       ]}
-      title="Drafts workspace"
+      title="成稿工作区"
     />
   );
 }

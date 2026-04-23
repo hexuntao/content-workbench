@@ -3,14 +3,14 @@ import { DashboardSectionPage } from "@/components/layout/dashboard-section-page
 export default function TopicsPage(): React.JSX.Element {
   return (
     <DashboardSectionPage
-      description="Shared routing, layout, and empty-state structure are ready. Thread 3 can now attach list rendering, filters, and actions under this route without reworking the shell."
-      eyebrow="Thread 3 / Topics"
+      description="共享路由、布局节奏和空状态结构已经就位。线程 3 现在可以在这个分区下直接接入列表、筛选和动作区域，而不需要重做壳层。"
+      eyebrow="线程 3 / 选题"
       highlights={[
-        "Route shell and navigation are stable.",
-        "Feature-specific data loading is intentionally not implemented here.",
-        "API and domain state logic remain owned by later threads.",
+        "路由壳和导航结构已经稳定。",
+        "这里刻意不实现功能级数据加载。",
+        "API 与领域状态逻辑仍然归后续线程拥有。",
       ]}
-      title="Topics workspace"
+      title="选题工作区"
     />
   );
 }

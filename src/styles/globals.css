@@ -527,6 +527,10 @@ ul {
   margin-top: var(--space-5);
 }
 
+.home-foundation-grid {
+  align-items: start;
+}
+
 .editorial-panel {
   padding: var(--space-6);
   border-radius: var(--radius-lg);
@@ -1000,18 +1004,21 @@ ul {
 
 @media (min-width: 768px) {
   .hero-panel {
-    grid-template-columns: minmax(0, 1.3fr) minmax(320px, 0.9fr);
-    align-items: end;
+    grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.82fr);
+    align-items: stretch;
   }
 
   .meta-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
+  .home-foundation-grid {
+    grid-template-columns: minmax(0, 1.18fr) minmax(300px, 0.82fr);
+  }
+
   .home-grid,
-  .home-foundation-grid,
   .page-grid {
-    grid-template-columns: minmax(0, 1fr) minmax(320px, 0.9fr);
+    grid-template-columns: minmax(0, 0.96fr) minmax(320px, 1.04fr);
   }
 
   .section-stage {

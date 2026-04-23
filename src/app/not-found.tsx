@@ -9,16 +9,16 @@ export default function NotFoundPage(): React.JSX.Element {
         actions={
           <div className="action-row">
             <Link className="button-link" href="/">
-              Return Home
+              返回首页
             </Link>
             <Link className="button-link button-link--secondary" href="/topics">
-              Open the Desk
+              打开工作台
             </Link>
           </div>
         }
-        description="The route is outside the current shared shell, or the address is incorrect."
+        description="这个地址不在当前共享壳层范围内，或者链接本身已经失效。"
         eyebrow="404"
-        title="This page is not on the desk"
+        title="这个页面不在当前工作台中"
       />
     </main>
   );

@@ -50,7 +50,7 @@ export default function RootLayout({ children }: RootLayoutProps): React.JSX.Ele
     <html lang="zh-CN">
       <body className={`${displayFont.variable} ${uiFont.variable} ${monoFont.variable} app-body`}>
         <a className="skip-link" href="#main-content">
-          Skip to content
+          跳到主要内容
         </a>
         <div className="app-canvas">{children}</div>
       </body>

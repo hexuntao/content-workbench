@@ -1,192 +1,192 @@
-# Content Workbench Design System
+# Content Workbench 设计系统
 
-## 1. Intent
+## 1. 设计意图
 
-Content Workbench is a content desk, not a generic SaaS dashboard.
+Content Workbench 是内容工作台，不是通用 SaaS 管理后台。
 
-It should feel like:
+它应该呈现出以下气质：
 
-- editorial
-- premium
-- calm
-- sharp
-- high signal density
+- 编辑感
+- 高级感
+- 冷静
+- 锐利
+- 高信噪比
 
-The UI must support review, drafting, comparison, and operational flow. It should read like a well-edited workspace: paper, rail, docket, note, and ledger layers working together.
+这套界面需要支撑选题、撰写、审核、比较和发布流转。它应当更像一张被认真整理过的编辑桌面：纸面、导航轨、托盘、批注层、总账层协同工作。
 
-## 2. Reference Blend
+## 2. 参考混合
 
-This project does **not** imitate one brand directly. It combines patterns from several references:
+本项目不直接模仿某一个品牌，而是混合借鉴以下来源：
 
 - `styleseed`
-  Why: use rule-based design judgment rather than random polish
+  作用：提供规则式设计判断，而不是随机堆叠视觉效果
 - `awesome-design-md`
-  Why: keep design intent in a persistent document agents can read
+  作用：把设计意图沉淀为 agent 可读取的长期文档
 - Notion
-  Why: warm neutrals, soft restraint, approachable editorial surfaces
+  作用：暖调中性、柔和克制、强调信息组织
+- Sanity Studio
+  作用：内容工作区结构、编辑流程感、内容优先
+- Linear
+  作用：界面收敛、层级克制、视觉节奏明确
 - HashiCorp
-  Why: precise structure, serious tooling posture, strong section grammar
-- Sanity
-  Why: content-system framing, mono metadata, sharp content-first hierarchy
-- WIRED
-  Why: editorial density, typographic confidence, reading-oriented information rhythm
+  作用：结构纪律、工具气质、清晰章节语法
 
-## 3. Product Position
+## 3. 产品定位
 
-- Primary mode: shallow-light editorial workspace
-- Emotional temperature: warm-neutral, quiet, deliberate
-- Interaction posture: precise, not playful
-- Visual density: compact but breathable
-- Brand posture: content operations, not growth dashboard, not CMS template
+- 主模式：浅色、轻暖、编辑台式工作区
+- 情绪温度：温暖中性、安静、克制
+- 交互姿态：精确，不玩闹
+- 信息密度：紧凑但能呼吸
+- 品牌姿态：内容运营工具，不是增长后台，也不是 CMS 模板页
 
-## 4. Core Rules
+## 4. 核心规则
 
-1. One accent color in the shell.
-   Everything else should come from ink, paper, tray, rule, and semantic states.
+1. 全局只保留一个强调色。  
+   其余层次靠墨色、纸面、托盘、规则线和语义状态建立。
 
-2. Surface hierarchy matters more than border count.
-   Distinguish canvas, rail, panel, inset, and note layers before adding more outlines.
+2. 表面层级比边框数量更重要。  
+   先分清画布、导航轨、主面板、内嵌层、注记层，再决定是否加边框。
 
-3. Do not repeat the same section treatment endlessly.
-   Alternate between open ledgers, contained panels, split stages, and inset notes.
+3. 不要无休止重复同一种 section 样式。  
+   在 ledger、panel、stage、note 之间切换，而不是整页都是同一种卡片。
 
-4. Most information should live in rows, ruled stacks, and split layouts.
-   Cards are reserved for emphasis, state, or grouped context.
+4. 大多数信息应当活在行、规则线、分栏和注记中。  
+   卡片只保留给强调内容、状态信息或强分组。
 
-5. Typography establishes hierarchy first.
-   Size, weight, line height, and measure should do more work than color.
+5. 层级首先依赖排版建立。  
+   字号、字重、行高、阅读宽度应当比颜色更重要。
 
-6. Metadata should feel operational.
-   Use monospace or narrow UI styling for indices, route numbers, owners, and shell status.
+6. 元信息要有操作感。  
+   编号、线程归属、状态标签、索引说明优先使用更克制、更系统化的样式。
 
-7. Calm means restrained, not empty.
-   Dense screens are allowed, but every group must have a clear lead, support, and edge.
+7. 冷静不等于空。  
+   可以高密度，但每一组内容都必须有主句、补充和边界。
 
-## 5. Forbidden Patterns
+## 5. 禁止模式
 
-- No purple as the shell accent
-- No pure white page canvas
-- No default gray-border card stacks
-- No identical radius on every container
-- No heavy drop shadows that visually detach every block from the page
-- No landing-page hero aesthetic inside the working shell
-- No generic “AI SaaS” glow gradients
-- No three repeated marketing cards as filler
-- No feature-specific styling baked into shared primitives
+- 禁止紫色作为主强调色
+- 禁止纯白页面底色
+- 禁止默认灰边卡片堆叠
+- 禁止所有容器同一种圆角
+- 禁止过重阴影让所有模块都像浮空卡片
+- 禁止在工作台里使用 landing page 式 hero
+- 禁止通用 AI SaaS 光晕渐变
+- 禁止把三列营销卡片当作填充物
+- 禁止在共享原语中写死 feature 特化样式
 
-## 6. Color System
+## 6. 颜色系统
 
-### Semantic roles
+### 语义角色
 
-- `canvas`: warm paper desk background
-- `surface-base`: broad page layer
-- `surface-panel`: primary working panel
-- `surface-raised`: featured panel or opening statement
-- `surface-muted`: side note / contextual support
-- `surface-inset`: recessed tray, note well, or dense local grouping
-- `ink`: primary reading color
-- `ink-soft`: headings support and dense body copy
-- `ink-muted`: metadata and secondary explanations
-- `accent`: one controlled signal color for direction and active emphasis
+- `canvas`：暖纸面工作台背景
+- `surface-base`：大面积基础表面
+- `surface-panel`：主工作面板
+- `surface-raised`：强调面板或首页开场区
+- `surface-muted`：辅助说明、侧注、次要上下文
+- `surface-inset`：内嵌托盘、局部高密度分组
+- `ink`：主阅读色
+- `ink-soft`：正文与说明性文字
+- `ink-muted`：元信息与次级提示
+- `accent`：唯一强调色，用于激活、导航、方向提示
 
-### Current palette direction
+### 当前色彩方向
 
-- warm paper canvas
-- charcoal ink
-- muted blue-green accent
-- warm brown rules
+- 暖纸面底色
+- 炭墨色正文
+- 克制的蓝绿色强调
+- 暖棕色规则线
 
-The accent should feel disciplined and editorial, not “brand splash”.
+强调色必须像“编辑信号”，不能像“品牌泼墨”。
 
-## 7. Typography
+## 7. 字体系统
 
-### Roles
+### 角色分工
 
-- Display: assertive sans, tight tracking, high confidence
-- UI body: neutral sans with strong legibility
-- Mono: operational metadata, route indices, status labels
+- Display：有压缩感的无衬线标题
+- UI Body：稳定、耐读的界面字体
+- Mono：索引、编号、线程、技术性元信息
 
-### Principles
+### 原则
 
-- Large headings should be compact and balanced
-- Long text should respect reading measure
-- Mono should appear in small doses for structure, not dominate the UI
-- Avoid giant hero typography that turns the shell into a marketing page
+- 大标题应紧凑且有平衡感
+- 长段落要尊重阅读宽度
+- Mono 只作为结构信号，不能泛滥
+- 禁止用超大标题把工作台做成营销页
 
-## 8. Spacing & Rhythm
+## 8. 间距与节奏
 
-Use the spacing scale consistently:
+统一采用以下刻度：
 
 - `4 / 8 / 12 / 16 / 24 / 32 / 48 / 64`
 
-Rules:
+规则：
 
-- Group-internal spacing must be smaller than section spacing
-- Header rhythm must feel deliberate, not inflated
-- Dense lists should use rules and row spacing, not padding-heavy cards
-- Major section changes should be obvious through spacing and layer change
+- 组内间距必须小于组间间距
+- 页头节奏要克制，不要虚胖
+- 高密度列表优先用规则线和行距，不靠厚 padding 卡片
+- 大块内容切换必须通过留白和表面层级体现出来
 
-## 9. Layout Grammar
+## 9. 布局语法
 
 ### Shell
 
-- Left side is a rail, not a glossy sidebar
-- Main area should read like a workspace sheet attached to the rail
-- Route header is a docket: title, context, compact status, then content
+- 左侧是导航轨，不是发光侧边栏
+- 主区像一张挂接在导航轨旁边的工作页
+- 路由页头像 docket：标题、上下文、紧凑状态，再进入正文
 
-### Pages
+### 页面
 
-- Prefer split stages: main statement + contextual note
-- Prefer ledgers: bordered row stacks for navigation and indexes
-- Prefer inset notes for operational explanation
-- Use wide open space only when it improves scan order
+- 优先使用 split stage：主说明 + 侧边注记
+- 优先使用 ledger：有规则线的行式总账
+- 优先使用 note：解释性和操作性注记
+- 只有在改善扫描顺序时才使用大面积留白
 
-### Homepage
+### 首页
 
-- It is an editorial desk introduction, not a SaaS landing page
-- It should explain the shell contract and expose shared routes
-- Do not duplicate the same route list twice
+- 它是编辑台入口，不是 SaaS 官网
+- 它应当解释共享壳层合同，并暴露主要工作区入口
+- 禁止同一套路由信息重复出现两次
 
-## 10. Primitive Guidance
+## 10. 原语约定
 
 ### Navigation
 
-- Active state should read as an insertion into the rail, not a button press
-- Use left bars, inset tone shifts, or restrained accent fields
+- 激活态应像“插入导航轨”，而不是普通按钮按下态
+- 优先使用左侧强调条、内嵌色块、轻微表面变调
 
 ### Buttons
 
-- Primary button: compact, calm, intentional
-- Secondary button: paper-like, lightly ruled
-- Avoid pill overload across the whole interface
+- 主按钮：紧凑、克制、方向明确
+- 次按钮：像纸面按钮，边界清楚但不过分突出
+- 不要整页到处都是 pill
 
 ### Panels
 
-- `panel`: contained working surface
-- `note`: lighter contextual support
-- `ledger`: row-based stack with rules
-- `stage`: split statement area for page openings
+- `panel`：主工作表面
+- `note`：次级说明表面
+- `ledger`：行式总账结构
+- `stage`：页面开场的分栏舞台
 
 ### States
 
-- Empty, loading, and error states must feel like part of the same publication system
-- Skeletons should match layout structure
-- Error styling should remain calm and instructive, not loud
+- 空状态、加载态、错误态必须属于同一个出版系统
+- 骨架屏必须贴合真实布局
+- 错误态要冷静、可恢复、可理解，不能做成红色警报页
 
-## 11. Motion
+## 11. 动效
 
-- Motion should confirm structure, not decorate it
-- Use short transforms and opacity changes only
-- Hover should feel like a subtle editorial nudge
-- Reduced motion must be supported
+- 动效用于确认结构，不用于装饰
+- 只使用短时长的 transform 与 opacity
+- hover 应像轻微编辑提示，而不是炫技反馈
+- 必须支持 reduced motion
 
-## 12. Agent Implementation Notes
+## 12. Agent 实施说明
 
-When editing shared UI:
+在修改共享 UI 时：
 
-1. Start from the design rules, not local visual improvisation
-2. Prefer tokenized semantic variables over literal values
-3. Ask whether a block should be a panel, note, ledger, or stage before styling it
-4. Remove repetition before adding decoration
-5. If a page starts to look like a generic admin template, the design is wrong
+1. 先看设计规则，再动样式
+2. 优先使用语义化 token，而不是散落的字面色值
+3. 先判断一个区块应该是 panel、note、ledger 还是 stage
+4. 先删重复，再谈装饰
+5. 如果页面重新长得像通用后台模板，说明设计已经跑偏
 
