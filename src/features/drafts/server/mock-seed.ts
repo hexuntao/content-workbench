@@ -196,6 +196,10 @@ function getPublishRepository() {
   return createPublishRepository();
 }
 
+function isUniqueConstraintError(error: unknown): boolean {
+  return typeof error === "object" && error !== null && "code" in error && error.code === "P2002";
+}
+
 export async function ensureDraftWorkbenchSeed(): Promise<void> {
   const topicRepository = getTopicRepository();
   const draftRepository = getDraftRepository();
@@ -205,48 +209,66 @@ export async function ensureDraftWorkbenchSeed(): Promise<void> {
     const topic = await topicRepository.getById(seedDraft.topicId);
 
     if (!topic) {
-      await topicRepository.create({
-        id: seedDraft.topicId,
-        title: seedDraft.topicTitle,
-        summary: seedDraft.topicSummary,
-        keywords: ["content", "editorial", "workflow"],
-        status: TopicStatus.IN_PROGRESS,
-        totalScore: 0.86,
-        editorialScore: 0.92,
-        relevanceScore: 0.84,
-        trendScore: 0.81,
-        recommendedAngle: "从编辑决策与流程控制切入，而不是平台技巧。",
-      });
+      try {
+        await topicRepository.create({
+          id: seedDraft.topicId,
+          title: seedDraft.topicTitle,
+          summary: seedDraft.topicSummary,
+          keywords: ["content", "editorial", "workflow"],
+          status: TopicStatus.IN_PROGRESS,
+          totalScore: 0.86,
+          editorialScore: 0.92,
+          relevanceScore: 0.84,
+          trendScore: 0.81,
+          recommendedAngle: "从编辑决策与流程控制切入，而不是平台技巧。",
+        });
+      } catch (error: unknown) {
+        if (!isUniqueConstraintError(error)) {
+          throw error;
+        }
+      }
     }
 
     const existingDraft = await draftRepository.getById(seedDraft.draftId);
 
     if (!existingDraft) {
-      await draftRepository.create({
-        id: seedDraft.draftId,
-        topicClusterId: seedDraft.topicId,
-        draftType: DraftType.MASTER,
-        status: seedDraft.status,
-        title: seedDraft.title,
-        summary: seedDraft.summary,
-        content: seedDraft.content,
-      });
+      try {
+        await draftRepository.create({
+          id: seedDraft.draftId,
+          topicClusterId: seedDraft.topicId,
+          draftType: DraftType.MASTER,
+          status: seedDraft.status,
+          title: seedDraft.title,
+          summary: seedDraft.summary,
+          content: seedDraft.content,
+        });
+      } catch (error: unknown) {
+        if (!isUniqueConstraintError(error)) {
+          throw error;
+        }
+      }
     }
 
     const existingRewrites = await draftRepository.listRewrites(seedDraft.draftId);
 
     if (existingRewrites.length === 0) {
       for (const rewrite of seedDraft.rewrites) {
-        await draftRepository.createRewrite({
-          id: rewrite.id,
-          draftId: seedDraft.draftId,
-          strategy: rewrite.strategy,
-          title: rewrite.title,
-          content: rewrite.content,
-          diffSummary: rewrite.diffSummary,
-          score: rewrite.score,
-          isSelected: rewrite.isSelected ?? false,
-        });
+        try {
+          await draftRepository.createRewrite({
+            id: rewrite.id,
+            draftId: seedDraft.draftId,
+            strategy: rewrite.strategy,
+            title: rewrite.title,
+            content: rewrite.content,
+            diffSummary: rewrite.diffSummary,
+            score: rewrite.score,
+            isSelected: rewrite.isSelected ?? false,
+          });
+        } catch (error: unknown) {
+          if (!isUniqueConstraintError(error)) {
+            throw error;
+          }
+        }
       }
     }
 

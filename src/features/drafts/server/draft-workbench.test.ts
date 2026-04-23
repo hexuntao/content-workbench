@@ -1,8 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { PrismaPg } from "@prisma/adapter-pg";
-import { DraftStatus, DraftType, PrismaClient, RewriteStrategy, TopicStatus } from "@prisma/client";
+import { DraftStatus, DraftType, RewriteStrategy, TopicStatus } from "@prisma/client";
 import { DraftWorkbenchError } from "@/features/drafts/server/errors";
 import {
   getDraftWorkbenchDetail,
@@ -10,20 +9,11 @@ import {
   triggerPackagingJob,
   triggerRewriteJob,
 } from "@/features/drafts/server/workbench-service";
+import { prisma } from "@/server/db";
 import { createDraftRepository, createTopicRepository } from "@/server/repositories";
 
-const connectionString = process.env.DATABASE_URL;
-
-if (!connectionString) {
-  throw new Error("DATABASE_URL must be set before running Thread 4 tests.");
-}
-
-const prisma = new PrismaClient({
-  adapter: new PrismaPg({ connectionString }),
-});
-
-const topicRepository = createTopicRepository(prisma);
-const draftRepository = createDraftRepository(prisma);
+const topicRepository = createTopicRepository();
+const draftRepository = createDraftRepository();
 
 async function resetDatabase(): Promise<void> {
   await prisma.publicationRecord.deleteMany();
