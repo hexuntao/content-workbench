@@ -12,7 +12,7 @@ export function ErrorView({
   onAction,
 }: ErrorViewProps): React.JSX.Element {
   return (
-    <main className="state-shell">
+    <main className="state-shell" id="main-content">
       <section className="error-state">
         <div className="error-state__signal" />
         <p className="meta-label">Application Error</p>

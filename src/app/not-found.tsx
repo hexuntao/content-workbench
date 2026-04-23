@@ -4,7 +4,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 
 export default function NotFoundPage(): React.JSX.Element {
   return (
-    <main className="state-shell">
+    <main className="state-shell" id="main-content">
       <EmptyState
         actions={
           <div className="action-row">

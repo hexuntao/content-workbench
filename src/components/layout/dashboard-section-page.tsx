@@ -16,10 +16,12 @@ export function DashboardSectionPage({
   return (
     <div className="page-stack">
       <section className="section-stage">
-        <div className="section-heading">
-          <p className="kicker">{eyebrow}</p>
-          <h2>{title}</h2>
-          <p>{description}</p>
+        <div className="section-stage__body">
+          <div className="section-heading">
+            <p className="kicker">{eyebrow}</p>
+            <h2>{title}</h2>
+            <p>{description}</p>
+          </div>
         </div>
         <aside className="section-aside">
           <p className="meta-label">Shell Status</p>
@@ -27,6 +29,11 @@ export function DashboardSectionPage({
             Shared route framing is ready. The owning thread can now attach feature-specific data
             views and interactions without reworking layout foundations.
           </p>
+          <div className="section-aside__chips">
+            <span className="workspace-chip">Shared spacing</span>
+            <span className="workspace-chip">Stable surfaces</span>
+            <span className="workspace-chip">Unified states</span>
+          </div>
         </aside>
       </section>
 

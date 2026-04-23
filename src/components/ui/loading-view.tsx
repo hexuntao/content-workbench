@@ -6,7 +6,7 @@ type LoadingViewProps = {
 
 export function LoadingView({ eyebrow, title, description }: LoadingViewProps): React.JSX.Element {
   return (
-    <main className="state-shell">
+    <main className="state-shell" id="main-content">
       <section className="loading-state">
         <p className="meta-label">{eyebrow}</p>
         <h1>{title}</h1>

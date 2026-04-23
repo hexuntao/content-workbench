@@ -21,7 +21,11 @@ export function DashboardNav({ items }: DashboardNavProps): React.JSX.Element {
 
           return (
             <li className="dashboard-nav__item" key={item.href}>
-              <Link className={cx("dashboard-nav__link", isActive && "is-active")} href={item.href}>
+              <Link
+                aria-current={isActive ? "page" : undefined}
+                className={cx("dashboard-nav__link", isActive && "is-active")}
+                href={item.href}
+              >
                 <span className="dashboard-nav__index">{item.indexLabel}</span>
                 <span className="dashboard-nav__body">
                   <strong>{item.title}</strong>

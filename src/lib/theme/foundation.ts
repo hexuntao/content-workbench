@@ -11,44 +11,56 @@ export type DesignTokenGroup = {
 
 export const editorialPrinciples: EditorialPrinciple[] = [
   {
-    title: "Calm Hierarchy",
+    title: "Calm Control",
     description:
-      "Use strong typography, restrained contrast, and deliberate spacing so dense information still feels legible.",
+      "Information should feel edited, not decorated. Strong typography and restrained contrast keep dense content readable without turning the shell into a gallery.",
   },
   {
-    title: "Editorial Surfaces",
+    title: "Desk-Like Surfaces",
     description:
-      "Panels should read like desk materials: paper, tray, and annotation layers instead of generic app cards.",
+      "Surfaces should feel like paper, tray, rail, and annotation layers. Generic SaaS cards flatten hierarchy and make every region compete for the same attention.",
   },
   {
     title: "Reusable Rhythm",
     description:
-      "Route shells, nav, empty states, and loading states share the same structural cadence so feature threads only add content.",
+      "Route shells, navigation, empty states, and loading states share one cadence so later feature threads can add information without inventing a second visual system.",
   },
 ];
 
 export const designTokenGroups: DesignTokenGroup[] = [
   {
     name: "Color Tokens",
-    description: "Canvas, ink, accent, rule, and surface layers for a warm editorial workspace.",
-    tokens: ["--color-canvas", "--color-panel", "--color-ink", "--color-accent"],
+    description:
+      "Warm canvas, disciplined ink, and one restrained accent define the emotional temperature of the workbench.",
+    tokens: ["--color-canvas", "--color-surface-raised", "--color-ink", "--color-accent"],
   },
   {
-    name: "Space Tokens",
+    name: "Surface Tokens",
     description:
-      "A single spacing scale keeps shell rhythm, content density, and page breathing room aligned.",
+      "Distinct paper, tray, and inset layers create hierarchy without relying on heavy borders or identical cards.",
+    tokens: [
+      "--color-surface-base",
+      "--color-surface-panel",
+      "--color-surface-inset",
+      "--rule-default",
+    ],
+  },
+  {
+    name: "Rhythm Tokens",
+    description:
+      "A single spacing scale aligns shell density, page breathing room, and grouping cadence across all shared routes.",
     tokens: ["--space-2", "--space-4", "--space-6", "--space-8"],
   },
   {
     name: "Radius & Depth",
     description:
-      "Different radii and shadow levels separate hero, rail, panel, and utility layers.",
-    tokens: ["--radius-sm", "--radius-lg", "--shadow-soft", "--shadow-panel"],
+      "Major panels, trays, rails, and utility elements use different radii and shadow levels so the shell does not collapse into one generic surface treatment.",
+    tokens: ["--radius-sm", "--radius-lg", "--shadow-1", "--shadow-3"],
   },
   {
     name: "Type & Width",
     description:
-      "Display, UI, mono, and container tokens define the reading voice of the workbench.",
-    tokens: ["--font-display", "--font-ui", "--container-page", "--container-shell"],
+      "Display, UI, mono, reading width, and shell width tokens establish the workbench voice and structural limits.",
+    tokens: ["--font-display", "--font-ui", "--measure-reading", "--container-shell"],
   },
 ];
