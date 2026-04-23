@@ -1,0 +1,349 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum SourceType {
+  RSS
+  X
+  WEB
+  WECHAT
+  WEIBO
+  V2EX
+  REDDIT
+  MANUAL
+}
+
+enum SourceStatus {
+  ACTIVE
+  PAUSED
+  ERROR
+}
+
+enum TopicStatus {
+  NEW
+  SHORTLISTED
+  IGNORED
+  IN_PROGRESS
+  ARCHIVED
+}
+
+enum DraftType {
+  MASTER
+  WECHAT
+  XHS
+  X_ARTICLE
+}
+
+enum DraftStatus {
+  CREATED
+  REWRITTEN
+  PACKAGED
+  IN_REVIEW
+  APPROVED
+  REJECTED
+  READY_TO_PUBLISH
+  ARCHIVED
+}
+
+enum RewriteStrategy {
+  ORAL
+  DE_AI
+  AUTHOR_VOICE
+  MIXED
+}
+
+enum ReviewStatus {
+  PENDING
+  CHANGES_REQUESTED
+  APPROVED
+}
+
+enum AssetType {
+  COVER_IMAGE
+  CARD_IMAGE
+  IMAGE_PROMPT
+  ATTACHMENT
+  EXPORT_BUNDLE
+}
+
+enum ChannelType {
+  WECHAT
+  XHS
+  X_ARTICLE
+}
+
+enum PublishStatus {
+  PENDING
+  EXPORTED
+  DRAFT_CREATED
+  PUBLISHED
+  FAILED
+}
+
+enum JobType {
+  INGEST_SOURCE
+  CLUSTER_TOPICS
+  GENERATE_MASTER_DRAFT
+  REWRITE_DRAFT
+  PACKAGE_DRAFT
+  GENERATE_ASSETS
+  EXPORT_PUBLISH_PACKAGE
+  CREATE_REMOTE_DRAFT
+}
+
+enum JobStatus {
+  QUEUED
+  RUNNING
+  SUCCEEDED
+  FAILED
+  CANCELED
+}
+
+enum JobEntityType {
+  SOURCE
+  TOPIC_CLUSTER
+  DRAFT
+  REVIEW_TASK
+  PUBLISH_PACKAGE
+}
+
+model Source {
+  id        String       @id @default(cuid())
+  name      String
+  type      SourceType
+  status    SourceStatus @default(ACTIVE)
+  config    Json
+  priority  Int          @default(0)
+  lastRunAt DateTime?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  items SourceItem[]
+
+  @@index([type, status])
+  @@index([status, priority])
+}
+
+model SourceItem {
+  id                String    @id @default(cuid())
+  sourceId          String
+  sourceExternalId  String?
+  title             String
+  url               String
+  author            String?
+  publishedAt       DateTime?
+  fetchedAt         DateTime  @default(now())
+  rawContent        String?
+  normalizedContent String?
+  summary           String?
+  language          String?   @default("zh-CN")
+  engagementScore   Float?    @default(0)
+  dedupeHash        String
+  metadata          Json?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  source     Source                   @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  topicLinks TopicClusterSourceItem[]
+
+  @@unique([sourceId, url])
+  @@unique([sourceId, sourceExternalId])
+  @@index([publishedAt])
+  @@index([dedupeHash])
+}
+
+model TopicCluster {
+  id               String      @id @default(cuid())
+  title            String
+  summary          String?
+  keywords         String[]
+  theme            String?
+  trendScore       Float       @default(0)
+  relevanceScore   Float       @default(0)
+  editorialScore   Float       @default(0)
+  totalScore       Float       @default(0)
+  recommendedAngle String?
+  status           TopicStatus @default(NEW)
+  metadata         Json?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  sourceLinks TopicClusterSourceItem[]
+  drafts      Draft[]
+  jobs        Job[]
+
+  @@index([status, totalScore, updatedAt])
+  @@index([theme, status])
+}
+
+model TopicClusterSourceItem {
+  topicClusterId String
+  sourceItemId   String
+  rank           Int     @default(0)
+  reason         String?
+
+  topicCluster TopicCluster @relation(fields: [topicClusterId], references: [id], onDelete: Cascade)
+  sourceItem   SourceItem   @relation(fields: [sourceItemId], references: [id], onDelete: Cascade)
+
+  @@id([topicClusterId, sourceItemId])
+  @@index([sourceItemId])
+  @@index([topicClusterId, rank])
+}
+
+model Draft {
+  id               String      @id @default(cuid())
+  topicClusterId   String
+  draftType        DraftType
+  status           DraftStatus @default(CREATED)
+  title            String
+  summary          String?
+  content          String
+  contentFormat    String      @default("markdown")
+  version          Int         @default(1)
+  currentRewriteId String?     @unique
+  metadata         Json?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  topicCluster    TopicCluster     @relation(fields: [topicClusterId], references: [id], onDelete: Cascade)
+  rewrites        RewriteVersion[] @relation("DraftRewrites")
+  currentRewrite  RewriteVersion?  @relation("CurrentDraftRewrite", fields: [currentRewriteId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  assets          Asset[]
+  reviews         ReviewTask[]
+  publishPackages PublishPackage[]
+  jobs            Job[]
+
+  @@index([topicClusterId, draftType])
+  @@index([status, updatedAt])
+}
+
+model RewriteVersion {
+  id          String          @id @default(cuid())
+  draftId     String
+  strategy    RewriteStrategy
+  title       String?
+  content     String
+  diffSummary String?
+  score       Float?
+  isSelected  Boolean         @default(false)
+  metadata    Json?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  draft           Draft  @relation("DraftRewrites", fields: [draftId], references: [id], onDelete: Cascade)
+  currentForDraft Draft? @relation("CurrentDraftRewrite")
+
+  @@index([draftId, strategy])
+  @@index([draftId, createdAt])
+}
+
+model Asset {
+  id         String    @id @default(cuid())
+  draftId    String
+  type       AssetType
+  path       String
+  mimeType   String?
+  fileSize   Int?
+  promptText String?
+  metadata   Json?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  draft Draft @relation(fields: [draftId], references: [id], onDelete: Cascade)
+
+  @@index([draftId, type])
+}
+
+model ReviewTask {
+  id            String       @id @default(cuid())
+  draftId       String
+  reviewerEmail String?
+  status        ReviewStatus @default(PENDING)
+  checklist     Json?
+  comments      String?
+  decidedAt     DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  draft Draft @relation(fields: [draftId], references: [id], onDelete: Cascade)
+  jobs  Job[]
+
+  @@index([draftId, status])
+  @@index([status, createdAt])
+  @@index([reviewerEmail, status])
+}
+
+model PublishPackage {
+  id            String        @id @default(cuid())
+  draftId       String
+  channel       ChannelType
+  status        PublishStatus @default(PENDING)
+  title         String?
+  summary       String?
+  content       String?
+  contentFormat String?
+  exportPath    String?
+  draftUrl      String?
+  metadata      Json?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  draft       Draft              @relation(fields: [draftId], references: [id], onDelete: Cascade)
+  publication PublicationRecord?
+  jobs        Job[]
+
+  @@unique([draftId, channel])
+  @@index([status, channel])
+  @@index([draftId, status])
+}
+
+model PublicationRecord {
+  id               String      @id @default(cuid())
+  publishPackageId String      @unique
+  channel          ChannelType
+  publishedUrl     String?
+  publishedAt      DateTime?
+  notes            String?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  publishPackage PublishPackage @relation(fields: [publishPackageId], references: [id], onDelete: Cascade)
+}
+
+model Job {
+  id               String        @id @default(cuid())
+  type             JobType
+  status           JobStatus     @default(QUEUED)
+  entityType       JobEntityType
+  entityId         String
+  topicClusterId   String?
+  draftId          String?
+  reviewTaskId     String?
+  publishPackageId String?
+  idempotencyKey   String?
+  triggeredBy      String?
+  input            Json?
+  output           Json?
+  errorCode        String?
+  errorMessage     String?
+  startedAt        DateTime?
+  finishedAt       DateTime?
+  retriesJobId     String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  topicCluster   TopicCluster?   @relation(fields: [topicClusterId], references: [id], onDelete: Cascade)
+  draft          Draft?          @relation(fields: [draftId], references: [id], onDelete: Cascade)
+  reviewTask     ReviewTask?     @relation(fields: [reviewTaskId], references: [id], onDelete: Cascade)
+  publishPackage PublishPackage? @relation(fields: [publishPackageId], references: [id], onDelete: Cascade)
+  retriesJob     Job?            @relation("JobRetries", fields: [retriesJobId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  retriedByJobs  Job[]           @relation("JobRetries")
+
+  @@index([entityType, entityId, createdAt])
+  @@index([type, status, createdAt])
+  @@index([idempotencyKey])
+}

@@ -9,11 +9,14 @@
     "start": "next start",
     "lint": "biome check package.json tsconfig.json biome.jsonc next.config.ts src",
     "typecheck": "next typegen && tsc --noEmit",
-    "test": "node --test --experimental-strip-types src/lib/navigation.test.ts",
+    "test": "tsx --test --test-concurrency=1 src/lib/navigation.test.ts src/server/repositories/repositories.test.ts",
     "format": "biome check --write package.json tsconfig.json biome.jsonc next.config.ts src"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "^7.8.0",
+    "@prisma/client": "^7.8.0",
     "next": "^16.2.4",
+    "pg": "^8.20.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5"
   },
@@ -22,6 +25,8 @@
     "@types/node": "^25.6.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "prisma": "^7.8.0",
+    "tsx": "^4.21.0",
     "typescript": "^6.0.3"
   }
 }
