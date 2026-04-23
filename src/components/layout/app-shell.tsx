@@ -19,7 +19,7 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
             <strong>Editorial Desk Shell</strong>
           </Link>
           <p className="app-sidebar__copy">
-            Thread 1 owns the routing frame, shared surfaces, and the visual cadence that later
+            Thread 1 owns the routing frame, shared surfaces, and the design contract that later
             feature threads inherit.
           </p>
         </div>
@@ -48,6 +48,14 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
               business states.
             </p>
           </section>
+
+          <section className="app-sidebar__note app-sidebar__note--quiet">
+            <p className="meta-label">Contract</p>
+            <p>
+              `DESIGN.md` defines the shell language so future routes extend one system instead of
+              layering local styles on top.
+            </p>
+          </section>
         </div>
       </aside>
 
@@ -65,7 +73,7 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
             <div className="app-header__meta">
               <span className="workspace-chip">Calm density</span>
               <span className="workspace-chip">Sharp hierarchy</span>
-              <span className="workspace-chip">Reusable surfaces</span>
+              <span className="workspace-chip">Editorial shell</span>
             </div>
             <div className="app-header__detail">
               <div className="app-header__stat">
@@ -77,8 +85,8 @@ export function AppShell({ children }: AppShellProps): React.JSX.Element {
                 <strong>Layout, tokens, primitives</strong>
               </div>
               <div className="app-header__stat">
-                <span>Intent</span>
-                <strong>Content desk, not admin chrome</strong>
+                <span>Contract</span>
+                <strong>Design system written in `DESIGN.md`</strong>
               </div>
             </div>
           </div>
