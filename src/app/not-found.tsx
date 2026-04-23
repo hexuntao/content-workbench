@@ -9,16 +9,16 @@ export default function NotFoundPage(): React.JSX.Element {
         actions={
           <div className="action-row">
             <Link className="button-link" href="/">
-              Go Home
+              Return Home
             </Link>
             <Link className="button-link button-link--secondary" href="/topics">
-              Open Dashboard
+              Open the Desk
             </Link>
           </div>
         }
-        description="The route exists outside the current Thread 1 scaffold, or the URL is incorrect."
+        description="The route is outside the current shared shell, or the address is incorrect."
         eyebrow="404"
-        title="Page not found"
+        title="This page is not on the desk"
       />
     </main>
   );

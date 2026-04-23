@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   colorScheme: "light",
-  themeColor: "#f4efe6",
+  themeColor: "#ebe5da",
 };
 
 type RootLayoutProps = Readonly<{
@@ -26,7 +26,9 @@ type RootLayoutProps = Readonly<{
 export default function RootLayout({ children }: RootLayoutProps): React.JSX.Element {
   return (
     <html lang="zh-CN">
-      <body>{children}</body>
+      <body className="app-body">
+        <div className="app-canvas">{children}</div>
+      </body>
     </html>
   );
 }

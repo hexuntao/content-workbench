@@ -14,13 +14,15 @@ export default function GlobalErrorPage({ error, reset }: GlobalErrorPageProps):
 
   return (
     <html lang="zh-CN">
-      <body>
-        <ErrorView
-          actionLabel="Reload Shell"
-          description="A root-level error interrupted the application shell before the page could load."
-          onAction={reset}
-          title="Application shell failed"
-        />
+      <body className="app-body">
+        <div className="app-canvas">
+          <ErrorView
+            actionLabel="Reload Shell"
+            description="A root-level error interrupted the application shell before the page could load."
+            onAction={reset}
+            title="Application shell failed"
+          />
+        </div>
       </body>
     </html>
   );

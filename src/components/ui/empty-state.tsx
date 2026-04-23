@@ -15,10 +15,13 @@ export function EmptyState({
 }: EmptyStateProps): React.JSX.Element {
   return (
     <section className="empty-state">
-      <p className="eyebrow">{eyebrow}</p>
-      <h2>{title}</h2>
-      <p>{description}</p>
-      {actions ? actions : null}
+      <div className="empty-state__marker" />
+      <div className="empty-state__body">
+        <p className="meta-label">{eyebrow}</p>
+        <h2>{title}</h2>
+        <p>{description}</p>
+      </div>
+      {actions ? <div className="empty-state__actions">{actions}</div> : null}
     </section>
   );
 }
