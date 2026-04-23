@@ -1,16 +1,19 @@
-import { DashboardSectionPage } from "@/components/layout/dashboard-section-page";
+import { EmptyState } from "@/components/ui/empty-state";
+import { PublishBoard } from "@/features/publish/components/publish-board";
+import { getPublishBoardSnapshot } from "@/features/publish/server/publish-service";
 
-export default function PublishPage(): React.JSX.Element {
-  return (
-    <DashboardSectionPage
-      description="发布分区已经拥有统一的工作台框架，等待线程 5 与线程 6 接入导出流程和远端草稿相关表面。"
-      eyebrow="线程 5 / 发布"
-      highlights={[
-        "布局与导航已经就位。",
-        "共享壳层中没有写死任何发布流程假设。",
-        "后续可以直接挂载功能模块，无需再搬动共享代码。",
-      ]}
-      title="发布工作区"
-    />
-  );
+export default async function PublishPage(): Promise<React.JSX.Element> {
+  const snapshot = await getPublishBoardSnapshot();
+
+  if (snapshot.lanes.every((lane) => lane.items.length === 0)) {
+    return (
+      <EmptyState
+        description="发布面板当前没有可见渠道包。等审核通过后的发布包接入后，这里会显示动作顺序与回填证据。"
+        eyebrow="Thread 5 / Publish"
+        title="发布准备面板当前为空"
+      />
+    );
+  }
+
+  return <PublishBoard snapshot={snapshot} />;
 }
