@@ -36,10 +36,12 @@ import {
   type PublishPackageFilters,
   type PublishPackageSummary,
 } from "@/server/repositories";
+import { createJobsRuntime } from "@/server/services/jobs/runtime";
 
 const draftRepository = createDraftRepository();
 const publishRepository = createPublishRepository();
 const jobRepository = createJobRepository();
+const jobsRuntime = createJobsRuntime();
 
 const channelLabels: Record<ChannelType, string> = {
   WECHAT: "微信公众号",
@@ -78,13 +80,6 @@ type PublishListInput = {
   draftId?: string | null;
   page?: number;
   pageSize?: number;
-};
-
-type PublishJobOutput = {
-  appliedAt: string;
-  exportPath?: string;
-  draftUrl?: string;
-  summary: string;
 };
 
 type PublishRecordInput = {
@@ -372,10 +367,23 @@ function assertCanCreateRemoteDraft(
 
 function assertCanMarkPublished(
   publishPackage: PublishPackageDetail,
+  draft: DraftDetail,
   existingPublication: PublishPackageDetail["publication"],
   input: PublishRecordInput,
 ): void {
   const publishedAt = existingPublication?.publishedAt ?? null;
+
+  invariant(
+    publishPackage.status === PublishStatus.PUBLISHED ||
+      draft.status === DraftStatus.READY_TO_PUBLISH,
+    "REVIEW_REQUIRED_BEFORE_PUBLISH",
+    "Draft must be approved and marked ready to publish before recording publication.",
+    409,
+    {
+      draftId: draft.id,
+      currentStatus: draft.status,
+    },
+  );
 
   invariant(
     publishPackage.exportPath !== null || publishPackage.status === PublishStatus.PUBLISHED,
@@ -404,119 +412,6 @@ function assertCanMarkPublished(
       },
     );
   }
-}
-
-function parseJobOutput(job: JobRecord): PublishJobOutput | null {
-  if (typeof job.output !== "object" || job.output === null || Array.isArray(job.output)) {
-    return null;
-  }
-
-  const output = job.output as Record<string, unknown>;
-
-  if (typeof output.appliedAt !== "string" || typeof output.summary !== "string") {
-    return null;
-  }
-
-  return {
-    appliedAt: output.appliedAt,
-    exportPath: typeof output.exportPath === "string" ? output.exportPath : undefined,
-    draftUrl: typeof output.draftUrl === "string" ? output.draftUrl : undefined,
-    summary: output.summary,
-  };
-}
-
-async function applyExportJob(job: JobRecord): Promise<PublishJobOutput> {
-  const publishPackage = await getPackageOrThrow(job.entityId);
-  const exportPath =
-    publishPackage.exportPath ??
-    `mock://exports/${publishPackage.channel.toLowerCase()}/${publishPackage.id}.md`;
-
-  await publishRepository.update(publishPackage.id, {
-    status: PublishStatus.EXPORTED,
-    exportPath,
-  });
-
-  return {
-    appliedAt: new Date().toISOString(),
-    exportPath,
-    summary: "导出产物已生成。",
-  };
-}
-
-async function applyRemoteDraftJob(job: JobRecord): Promise<PublishJobOutput> {
-  const publishPackage = await getPackageOrThrow(job.entityId);
-  const draftUrl =
-    publishPackage.draftUrl ??
-    `https://example.com/remote-draft/${publishPackage.channel.toLowerCase()}/${publishPackage.id}`;
-
-  await publishRepository.update(publishPackage.id, {
-    status: PublishStatus.DRAFT_CREATED,
-    draftUrl,
-  });
-
-  return {
-    appliedAt: new Date().toISOString(),
-    draftUrl,
-    summary: "远端草稿已创建。",
-  };
-}
-
-async function advanceMockJob(job: JobRecord): Promise<JobRecord> {
-  if (
-    job.status === JobStatus.CANCELED ||
-    job.status === JobStatus.FAILED ||
-    job.status === JobStatus.SUCCEEDED
-  ) {
-    return job;
-  }
-
-  const elapsedMs = Date.now() - job.createdAt.getTime();
-  let currentJob = job;
-
-  if (currentJob.status === JobStatus.QUEUED && elapsedMs >= 250) {
-    currentJob = await jobRepository.update(currentJob.id, {
-      status: JobStatus.RUNNING,
-      startedAt: currentJob.startedAt ?? new Date(),
-    });
-  }
-
-  if (
-    (currentJob.status === JobStatus.RUNNING || currentJob.status === JobStatus.QUEUED) &&
-    elapsedMs >= 950
-  ) {
-    const output =
-      parseJobOutput(currentJob) ??
-      (currentJob.type === JobType.EXPORT_PUBLISH_PACKAGE
-        ? await applyExportJob(currentJob)
-        : currentJob.type === JobType.CREATE_REMOTE_DRAFT
-          ? await applyRemoteDraftJob(currentJob)
-          : {
-              appliedAt: new Date().toISOString(),
-              summary: "Mock job completed.",
-            });
-
-    currentJob = await jobRepository.update(currentJob.id, {
-      status: JobStatus.SUCCEEDED,
-      startedAt: currentJob.startedAt ?? new Date(),
-      finishedAt: new Date(),
-      output,
-      errorCode: null,
-      errorMessage: null,
-    });
-  }
-
-  return currentJob;
-}
-
-async function syncPublishJobs(publishPackageId: string): Promise<JobRecord[]> {
-  const jobs = await listJobsForPackage(publishPackageId);
-  const synced: JobRecord[] = [];
-
-  for (const job of jobs) {
-    synced.push(await advanceMockJob(job));
-  }
-
-  return synced;
 }
 
 function buildStages(detail: PublishPackageDetail): PublishStage[] {
@@ -591,7 +486,9 @@ function buildCapabilities(
     draft.status === DraftStatus.READY_TO_PUBLISH &&
     detail.status !== PublishStatus.PUBLISHED &&
     !remoteDraftActive;
-  const canMarkPublished = detail.exportPath !== null || detail.status === PublishStatus.PUBLISHED;
+  const canMarkPublished =
+    (detail.exportPath !== null || detail.status === PublishStatus.PUBLISHED) &&
+    (draft.status === DraftStatus.READY_TO_PUBLISH || detail.status === PublishStatus.PUBLISHED);
 
   return {
     canExport,
@@ -665,7 +562,7 @@ function buildNotices(
 
 async function buildPublishDetail(publishPackageId: string): Promise<PublishDetail> {
   await ensurePublishSeed();
-  const jobs = await syncPublishJobs(publishPackageId);
+  const jobs = await listJobsForPackage(publishPackageId);
   const detail = await getPackageOrThrow(publishPackageId);
   const draft = await getDraftOrThrow(detail.draftId);
   const capabilities = buildCapabilities(detail, draft, jobs);
@@ -746,7 +643,6 @@ export async function getPublishBoardSnapshot(): Promise<PublishBoardSnapshot> {
   const items = await Promise.all(
     publishWorkbenchPackageIds.map(
       async (publishPackageId: string): Promise<PublishBoardItem | null> => {
-        await syncPublishJobs(publishPackageId);
         const publishPackage = await publishRepository.getById(publishPackageId);
 
         if (publishPackage === null) {
@@ -834,24 +730,27 @@ export async function exportPublishPackage(
 
   assertCanExport(publishPackage, activeJob !== null);
 
-  const createdJob =
-    activeJob ??
-    (await jobRepository.create({
-      type: JobType.EXPORT_PUBLISH_PACKAGE,
-      entityType: JobEntityType.PUBLISH_PACKAGE,
-      entityId: publishPackage.id,
-      publishPackageId: publishPackage.id,
-      draftId: publishPackage.draftId,
-      status: JobStatus.QUEUED,
-      idempotencyKey: buildIdempotencyKey("export", publishPackage.id),
-      input: {
+  const createdJob = activeJob
+    ? {
+        jobId: activeJob.id,
+        status: activeJob.status,
+      }
+    : await jobsRuntime.enqueueWorkflowJob({
+        type: JobType.EXPORT_PUBLISH_PACKAGE,
+        entityType: JobEntityType.PUBLISH_PACKAGE,
+        entityId: publishPackage.id,
         publishPackageId: publishPackage.id,
-        channel: publishPackage.channel,
-      },
-    }));
+        draftId: publishPackage.draftId,
+        idempotencyKey: buildIdempotencyKey("export", publishPackage.id),
+        triggeredBy: "publish-workbench",
+        input: {
+          publishPackageId: publishPackage.id,
+          channel: publishPackage.channel,
+        },
+      });
 
   return {
-    jobId: createdJob.id,
+    jobId: createdJob.jobId,
     status: createdJob.status as PublishActionJobResponse["status"],
     publishPackageId: publishPackage.id,
     entityType: "PUBLISH_PACKAGE",
@@ -872,24 +771,28 @@ export async function createRemoteDraftForPackage(
 
   assertCanCreateRemoteDraft(publishPackage, draft, activeJob !== null);
 
-  const createdJob =
-    activeJob ??
-    (await jobRepository.create({
-      type: JobType.CREATE_REMOTE_DRAFT,
-      entityType: JobEntityType.PUBLISH_PACKAGE,
-      entityId: publishPackage.id,
-      publishPackageId: publishPackage.id,
-      draftId: publishPackage.draftId,
-      status: JobStatus.QUEUED,
-      idempotencyKey: buildIdempotencyKey("remote-draft", publishPackage.id),
-      input: {
+  const createdJob = activeJob
+    ? {
+        jobId: activeJob.id,
+        status: activeJob.status,
+      }
+    : await jobsRuntime.enqueueWorkflowJob({
+        type: JobType.CREATE_REMOTE_DRAFT,
+        entityType: JobEntityType.PUBLISH_PACKAGE,
+        entityId: publishPackage.id,
         publishPackageId: publishPackage.id,
-        channel: publishPackage.channel,
-      },
-    }));
+        draftId: publishPackage.draftId,
+        idempotencyKey: buildIdempotencyKey("remote-draft", publishPackage.id),
+        triggeredBy: "publish-workbench",
+        input: {
+          publishPackageId: publishPackage.id,
+          channel: publishPackage.channel,
+          channelAccountId: _channelAccountId,
+        },
+      });
 
   return {
-    jobId: createdJob.id,
+    jobId: createdJob.jobId,
     status: createdJob.status as PublishActionJobResponse["status"],
     publishPackageId: publishPackage.id,
     entityType: "PUBLISH_PACKAGE",
@@ -918,7 +821,15 @@ export async function markPackagePublished(
       );
     }
 
-    assertCanMarkPublished(publishPackage, publishPackage.publication, input);
+    const draft = await createDraftRepository(tx).getById(publishPackage.draftId);
+
+    if (draft === null) {
+      throw new PublishWorkbenchError("DRAFT_NOT_FOUND", "Draft not found.", 404, {
+        draftId: publishPackage.draftId,
+      });
+    }
+
+    assertCanMarkPublished(publishPackage, draft, publishPackage.publication, input);
 
     const updatedPackage = await publishTx.update(publishPackage.id, {
       status: PublishStatus.PUBLISHED,

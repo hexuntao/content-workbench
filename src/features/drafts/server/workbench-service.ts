@@ -1,13 +1,11 @@
 import {
-  ChannelType,
+  type ChannelType,
   DraftStatus,
   DraftType,
   JobEntityType,
   JobStatus,
   JobType,
-  type Prisma,
-  PublishStatus,
-  RewriteStrategy,
+  type RewriteStrategy,
 } from "@prisma/client";
 import { DraftWorkbenchError, invariant } from "@/features/drafts/server/errors";
 import {
@@ -16,11 +14,15 @@ import {
 } from "@/features/drafts/server/mock-seed";
 import type {
   DraftActionJobResponse,
+  DraftAssetItem,
+  DraftAssetListResponse,
   DraftDirectoryItem,
   DraftPublishPackageItem,
+  DraftPublishPackageListResponse,
   DraftReadingPane,
   DraftRewriteComparison,
   DraftRewriteItem,
+  DraftRewriteListResponse,
   DraftWorkbenchCapabilities,
   DraftWorkbenchDetail,
   DraftWorkbenchHeader,
@@ -39,10 +41,12 @@ import {
   type JobRecord,
   type RewriteSummary,
 } from "@/server/repositories";
+import { createJobsRuntime } from "@/server/services/jobs/runtime";
 
 const draftRepository = createDraftRepository();
 const publishRepository = createPublishRepository();
 const jobRepository = createJobRepository();
+const jobsRuntime = createJobsRuntime();
 
 const rewriteStrategyLabels: Record<RewriteStrategy, string> = {
   ORAL: "口语化",
@@ -90,28 +94,7 @@ const invalidActionStatuses = new Set<DraftStatus>([
   DraftStatus.READY_TO_PUBLISH,
 ]);
 
-type RewriteJobPayload = {
-  strategies: RewriteStrategy[];
-  voiceProfileId: string | null;
-};
-
-type PackageJobPayload = {
-  channels: ChannelType[];
-  rewriteId: string | null;
-};
-
-type JobOutputPayload = {
-  appliedAt?: string;
-  createdRewriteIds?: string[];
-  createdPackageIds?: string[];
-  summary?: string;
-};
-
 type ErrorDetails = Record<string, string | number | boolean | null | undefined>;
-
-function isJsonObject(value: Prisma.JsonValue | null): value is Prisma.JsonObject {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
 
 function isRewriteStrategy(value: string): value is RewriteStrategy {
   return value in rewriteStrategyLabels;
@@ -286,57 +269,6 @@ function requireValue<T>(
   return value;
 }
 
-function parseRewriteJobPayload(job: JobRecord): RewriteJobPayload {
-  const input = isJsonObject(job.input) ? job.input : {};
-  const strategies = Array.isArray(input.strategies)
-    ? input.strategies
-        .filter((value: Prisma.JsonValue): value is string => typeof value === "string")
-        .filter(isRewriteStrategy)
-    : [];
-  const voiceProfileId = typeof input.voiceProfileId === "string" ? input.voiceProfileId : null;
-
-  return {
-    strategies,
-    voiceProfileId,
-  };
-}
-
-function parsePackageJobPayload(job: JobRecord): PackageJobPayload {
-  const input = isJsonObject(job.input) ? job.input : {};
-  const channels = Array.isArray(input.channels)
-    ? input.channels
-        .filter((value: Prisma.JsonValue): value is string => typeof value === "string")
-        .filter(isChannelType)
-    : [];
-  const rewriteId = typeof input.rewriteId === "string" ? input.rewriteId : null;
-
-  return {
-    channels,
-    rewriteId,
-  };
-}
-
-function parseJobOutput(job: JobRecord): JobOutputPayload {
-  const output = isJsonObject(job.output) ? job.output : {};
-  const createdRewriteIds = Array.isArray(output.createdRewriteIds)
-    ? output.createdRewriteIds.filter(
-        (value: Prisma.JsonValue): value is string => typeof value === "string",
-      )
-    : undefined;
-  const createdPackageIds = Array.isArray(output.createdPackageIds)
-    ? output.createdPackageIds.filter(
-        (value: Prisma.JsonValue): value is string => typeof value === "string",
-      )
-    : undefined;
-
-  return {
-    appliedAt: typeof output.appliedAt === "string" ? output.appliedAt : undefined,
-    createdRewriteIds,
-    createdPackageIds,
-    summary: typeof output.summary === "string" ? output.summary : undefined,
-  };
-}
-
 async function listJobsForDraft(draftId: string): Promise<JobRecord[]> {
   const result = await jobRepository.list({
     entityType: JobEntityType.DRAFT,
@@ -345,345 +277,6 @@ async function listJobsForDraft(draftId: string): Promise<JobRecord[]> {
   });
 
   return result.items;
-}
-
-function buildMockRewriteContent(baseDraft: DraftDetail, strategy: RewriteStrategy): string {
-  const voiceSentence =
-    strategy === RewriteStrategy.AUTHOR_VOICE
-      ? "这一版把判断提前，用更像主笔手记的方式收紧导语。"
-      : strategy === RewriteStrategy.DE_AI
-        ? "这一版删掉泛泛铺垫，把句子压成更直接的结论。"
-        : strategy === RewriteStrategy.ORAL
-          ? "这一版把表达换成更口头的推进方式。"
-          : "这一版混合了节奏收紧和观点前置两种处理。";
-
-  return `# ${baseDraft.title}
-
-${voiceSentence}
-
-## 编辑判断
-
-${baseDraft.summary ?? "这份母稿继续围绕编辑判断与内容工作流展开。"}
-
-## 结构调整
-
-这次 mock 改写保留原文主张，但会把重点更早抬出来，让读者更快知道为什么要继续读下去。
-
-## 下一步
-
-如果这版成为当前选择，平台包装就应该直接基于这一版展开，而不是再回到原始母稿重复整理。`;
-}
-
-function getMockRewriteTitle(baseDraft: DraftDetail, strategy: RewriteStrategy): string {
-  if (strategy === RewriteStrategy.AUTHOR_VOICE) {
-    return `${baseDraft.title}：把判断提前的一版`;
-  }
-
-  if (strategy === RewriteStrategy.DE_AI) {
-    return `${baseDraft.title}：去模板味的一版`;
-  }
-
-  if (strategy === RewriteStrategy.ORAL) {
-    return `${baseDraft.title}：更口语的一版`;
-  }
-
-  return `${baseDraft.title}：混合重写的一版`;
-}
-
-function getMockRewriteSummary(strategy: RewriteStrategy): string {
-  if (strategy === RewriteStrategy.AUTHOR_VOICE) {
-    return "把主张前置，语气更像编辑判断稿。";
-  }
-
-  if (strategy === RewriteStrategy.DE_AI) {
-    return "减少模板化衔接，把句子压得更直接。";
-  }
-
-  if (strategy === RewriteStrategy.ORAL) {
-    return "提高口语密度，适合更轻的阅读节奏。";
-  }
-
-  return "混合处理结构和语气，适合做中间版本。";
-}
-
-function getMockRewriteScore(strategy: RewriteStrategy): number {
-  if (strategy === RewriteStrategy.AUTHOR_VOICE) {
-    return 0.92;
-  }
-
-  if (strategy === RewriteStrategy.DE_AI) {
-    return 0.88;
-  }
-
-  if (strategy === RewriteStrategy.ORAL) {
-    return 0.81;
-  }
-
-  return 0.86;
-}
-
-function getMockPackageSummary(channel: ChannelType): string {
-  if (channel === ChannelType.WECHAT) {
-    return "保留论证展开与段落承接，适合长文发布。";
-  }
-
-  if (channel === ChannelType.XHS) {
-    return "压缩成更快进入结论的节奏，强调可扫读性。";
-  }
-
-  return "保留观点推进，但缩短导语与中段转场。";
-}
-
-function buildMockPackageContent(
-  draft: DraftDetail,
-  selectedRewrite: RewriteSummary | null,
-  channel: ChannelType,
-): string {
-  const title = selectedRewrite?.title ?? draft.title;
-  const opening = selectedRewrite
-    ? "这份包装基于当前选中的改写版本。"
-    : "这份包装直接使用母稿正文作为基线。";
-
-  return `# ${title}
-
-${opening}
-
-## 渠道
-
-${channelLabels[channel]}
-
-## 包装说明
-
-${getMockPackageSummary(channel)}`;
-}
-
-function reduceDraftStatusAfterRewrite(currentStatus: DraftStatus): DraftStatus {
-  if (currentStatus === DraftStatus.CREATED || currentStatus === DraftStatus.REJECTED) {
-    return DraftStatus.REWRITTEN;
-  }
-
-  if (currentStatus === DraftStatus.REWRITTEN || currentStatus === DraftStatus.PACKAGED) {
-    return currentStatus;
-  }
-
-  throw new DraftWorkbenchError(
-    "DRAFT_STATUS_INVALID",
-    "Draft is not in a valid state for rewrite.",
-    409,
-    {
-      currentStatus,
-      action: "completeRewrite",
-    },
-  );
-}
-
-function reduceDraftStatusAfterPackaging(currentStatus: DraftStatus): DraftStatus {
-  if (
-    currentStatus === DraftStatus.CREATED ||
-    currentStatus === DraftStatus.REWRITTEN ||
-    currentStatus === DraftStatus.PACKAGED
-  ) {
-    return DraftStatus.PACKAGED;
-  }
-
-  throw new DraftWorkbenchError(
-    "DRAFT_STATUS_INVALID",
-    "Draft is not in a valid state for packaging.",
-    409,
-    {
-      currentStatus,
-      action: "completePackaging",
-    },
-  );
-}
-
-async function applyRewriteJob(job: JobRecord): Promise<JobOutputPayload> {
-  const draft = requireValue(
-    await draftRepository.getById(job.entityId),
-    "DRAFT_NOT_FOUND",
-    "Draft not found.",
-    404,
-    {
-      draftId: job.entityId,
-    },
-  );
-
-  const payload = parseRewriteJobPayload(job);
-  const existingRewrites = await draftRepository.listRewrites(draft.id);
-  const existingIds = new Set(existingRewrites.map((rewrite: RewriteSummary) => rewrite.id));
-  const createdRewriteIds: string[] = [];
-
-  for (const strategy of payload.strategies) {
-    const rewriteId = `${job.id}_${strategy.toLowerCase()}`;
-
-    if (existingIds.has(rewriteId)) {
-      createdRewriteIds.push(rewriteId);
-      continue;
-    }
-
-    await draftRepository.createRewrite({
-      id: rewriteId,
-      draftId: draft.id,
-      strategy,
-      title: getMockRewriteTitle(draft, strategy),
-      content: buildMockRewriteContent(draft, strategy),
-      diffSummary: getMockRewriteSummary(strategy),
-      score: getMockRewriteScore(strategy),
-      isSelected: false,
-      metadata: {
-        mockedBy: "thread-4",
-        voiceProfileId: payload.voiceProfileId,
-      },
-    });
-    createdRewriteIds.push(rewriteId);
-  }
-
-  const updatedDraft = requireValue(
-    await draftRepository.getById(draft.id),
-    "DRAFT_NOT_FOUND",
-    "Draft not found.",
-    404,
-    {
-      draftId: draft.id,
-    },
-  );
-
-  if (!updatedDraft.currentRewriteId && createdRewriteIds[0]) {
-    await draftRepository.selectRewrite(updatedDraft.id, createdRewriteIds[0]);
-  }
-
-  const nextStatus = reduceDraftStatusAfterRewrite(updatedDraft.status);
-
-  if (nextStatus !== updatedDraft.status) {
-    await draftRepository.update(updatedDraft.id, {
-      status: nextStatus,
-    });
-  }
-
-  return {
-    appliedAt: new Date().toISOString(),
-    createdRewriteIds,
-    summary: `Created ${createdRewriteIds.length} rewrite version(s).`,
-  };
-}
-
-async function applyPackageJob(job: JobRecord): Promise<JobOutputPayload> {
-  const draft = requireValue(
-    await draftRepository.getById(job.entityId),
-    "DRAFT_NOT_FOUND",
-    "Draft not found.",
-    404,
-    {
-      draftId: job.entityId,
-    },
-  );
-
-  const payload = parsePackageJobPayload(job);
-  const rewrites = await draftRepository.listRewrites(draft.id);
-  const explicitRewrite = payload.rewriteId
-    ? (rewrites.find((rewrite: RewriteSummary) => rewrite.id === payload.rewriteId) ?? null)
-    : null;
-  const selectedRewrite =
-    explicitRewrite ?? rewrites.find((rewrite: RewriteSummary) => rewrite.isSelected) ?? null;
-  const createdPackageIds: string[] = [];
-
-  for (const channel of payload.channels) {
-    const publishPackage = await publishRepository.upsertByDraftAndChannel({
-      draftId: draft.id,
-      channel,
-      status:
-        channel === ChannelType.X_ARTICLE ? PublishStatus.DRAFT_CREATED : PublishStatus.EXPORTED,
-      title: selectedRewrite?.title ?? draft.title,
-      summary: getMockPackageSummary(channel),
-      content: buildMockPackageContent(draft, selectedRewrite, channel),
-      contentFormat: "markdown",
-      exportPath: `mock://exports/${channel.toLowerCase()}/${draft.id}.md`,
-      draftUrl:
-        channel === ChannelType.X_ARTICLE
-          ? `https://example.com/remote-draft/${draft.id}/${channel.toLowerCase()}`
-          : null,
-      metadata: {
-        mockedBy: "thread-4",
-        sourceRewriteId: selectedRewrite?.id ?? null,
-      },
-    });
-
-    createdPackageIds.push(publishPackage.id);
-  }
-
-  const nextStatus = reduceDraftStatusAfterPackaging(draft.status);
-
-  if (nextStatus !== draft.status) {
-    await draftRepository.update(draft.id, {
-      status: nextStatus,
-    });
-  }
-
-  return {
-    appliedAt: new Date().toISOString(),
-    createdPackageIds,
-    summary: `Packaged ${createdPackageIds.length} channel output(s).`,
-  };
-}
-
-async function advanceMockJob(job: JobRecord): Promise<JobRecord> {
-  if (
-    job.status === JobStatus.FAILED ||
-    job.status === JobStatus.CANCELED ||
-    job.status === JobStatus.SUCCEEDED
-  ) {
-    return job;
-  }
-
-  const elapsedMs = Date.now() - job.createdAt.getTime();
-  let currentJob = job;
-
-  if (currentJob.status === JobStatus.QUEUED && elapsedMs >= 250) {
-    currentJob = await jobRepository.update(currentJob.id, {
-      status: JobStatus.RUNNING,
-      startedAt: currentJob.startedAt ?? new Date(),
-    });
-  }
-
-  if (
-    (currentJob.status === JobStatus.RUNNING || currentJob.status === JobStatus.QUEUED) &&
-    elapsedMs >= 1200
-  ) {
-    const output = parseJobOutput(currentJob);
-    const appliedOutput =
-      output.appliedAt !== undefined
-        ? output
-        : currentJob.type === JobType.REWRITE_DRAFT
-          ? await applyRewriteJob(currentJob)
-          : currentJob.type === JobType.PACKAGE_DRAFT
-            ? await applyPackageJob(currentJob)
-            : {
-                appliedAt: new Date().toISOString(),
-                summary: "Mock job completed.",
-              };
-
-    currentJob = await jobRepository.update(currentJob.id, {
-      status: JobStatus.SUCCEEDED,
-      startedAt: currentJob.startedAt ?? new Date(),
-      finishedAt: new Date(),
-      output: appliedOutput,
-      errorCode: null,
-      errorMessage: null,
-    });
-  }
-
-  return currentJob;
-}
-
-async function syncDraftJobs(draftId: string): Promise<JobRecord[]> {
-  const jobs = await listJobsForDraft(draftId);
-  const synced: JobRecord[] = [];
-
-  for (const job of jobs) {
-    synced.push(await advanceMockJob(job));
-  }
-
-  return synced;
 }
 
 function getDisabledReason(
@@ -805,7 +398,7 @@ export async function getDefaultDraftId(): Promise<string | null> {
 
 export async function getDraftWorkbenchDetail(draftId: string): Promise<DraftWorkbenchDetail> {
   await ensureDraftWorkbenchSeed();
-  const syncedJobs = await syncDraftJobs(draftId);
+  const jobs = await listJobsForDraft(draftId);
   const draft = requireValue(
     await draftRepository.getById(draftId),
     "DRAFT_NOT_FOUND",
@@ -824,18 +417,16 @@ export async function getDraftWorkbenchDetail(draftId: string): Promise<DraftWor
     null;
 
   const rewriteItems = rewrites.map((rewrite: RewriteSummary) =>
-    mapRewriteItem(rewrite, buildMockRewriteContent(draft, rewrite.strategy as RewriteStrategy)),
+    mapRewriteItem(rewrite, rewrite.content),
   );
 
   const selectedRewrite =
     rewriteItems.find((rewrite: DraftRewriteItem) => rewrite.isSelected) ?? null;
-  const activeContent = selectedRewriteSummary
-    ? buildMockRewriteContent(draft, selectedRewriteSummary.strategy as RewriteStrategy)
-    : draft.content;
+  const activeContent = selectedRewriteSummary?.content ?? draft.content;
   const activeTitle = selectedRewriteSummary?.title ?? draft.title;
   const activeSummary = selectedRewriteSummary?.diffSummary ?? draft.summary;
-  const recentJobs = syncedJobs.map(mapJob);
-  const capabilities = buildCapabilities(draft, syncedJobs);
+  const recentJobs = jobs.map(mapJob);
+  const capabilities = buildCapabilities(draft, jobs);
 
   return {
     draft: mapHeader(draft),
@@ -862,7 +453,70 @@ export async function getDraftWorkbenchDetail(draftId: string): Promise<DraftWor
     ),
     latestJob: recentJobs[0] ?? null,
     capabilities,
-    notices: buildNotices(draft, selectedRewrite, syncedJobs),
+    notices: buildNotices(draft, selectedRewrite, jobs),
+  };
+}
+
+function mapAssetItem(asset: {
+  id: string;
+  type: string;
+  path: string;
+  mimeType: string | null;
+  fileSize: number | null;
+  promptText: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}): DraftAssetItem {
+  return {
+    id: asset.id,
+    type: asset.type,
+    path: asset.path,
+    mimeType: asset.mimeType,
+    fileSize: asset.fileSize,
+    promptText: asset.promptText,
+    createdAt: asset.createdAt.toISOString(),
+    updatedAt: asset.updatedAt.toISOString(),
+  };
+}
+
+export async function listDraftRewrites(draftId: string): Promise<DraftRewriteListResponse> {
+  await ensureDraftWorkbenchSeed();
+  requireValue(await draftRepository.getById(draftId), "DRAFT_NOT_FOUND", "Draft not found.", 404, {
+    draftId,
+  });
+
+  const rewrites = await draftRepository.listRewrites(draftId);
+
+  return {
+    items: rewrites.map((rewrite: RewriteSummary) => mapRewriteItem(rewrite, rewrite.content)),
+  };
+}
+
+export async function listDraftAssets(draftId: string): Promise<DraftAssetListResponse> {
+  await ensureDraftWorkbenchSeed();
+  requireValue(await draftRepository.getById(draftId), "DRAFT_NOT_FOUND", "Draft not found.", 404, {
+    draftId,
+  });
+
+  const assets = await draftRepository.listAssets(draftId);
+
+  return {
+    items: assets.map(mapAssetItem),
+  };
+}
+
+export async function listDraftPublishPackages(
+  draftId: string,
+): Promise<DraftPublishPackageListResponse> {
+  await ensureDraftWorkbenchSeed();
+  requireValue(await draftRepository.getById(draftId), "DRAFT_NOT_FOUND", "Draft not found.", 404, {
+    draftId,
+  });
+
+  const packages = await publishRepository.listByDraftId(draftId);
+
+  return {
+    items: packages.map(mapPackageItem),
   };
 }
 
@@ -883,7 +537,6 @@ export async function triggerRewriteJob(
   input: TriggerRewriteInput,
 ): Promise<DraftActionJobResponse> {
   await ensureDraftWorkbenchSeed();
-  await syncDraftJobs(draftId);
   const draft = requireValue(
     await draftRepository.getById(draftId),
     "DRAFT_NOT_FOUND",
@@ -941,23 +594,27 @@ export async function triggerRewriteJob(
     return mapJobResponse(activeJob, draft.id);
   }
 
-  const job = await jobRepository.create({
-    id: `job_${crypto.randomUUID()}`,
+  const job = await jobsRuntime.enqueueWorkflowJob({
     type: JobType.REWRITE_DRAFT,
-    status: JobStatus.QUEUED,
     entityType: JobEntityType.DRAFT,
     entityId: draft.id,
     draftId: draft.id,
     topicClusterId: draft.topicClusterId,
     idempotencyKey,
-    triggeredBy: "thread-4-mock",
+    triggeredBy: "draft-workbench",
     input: {
       strategies,
       voiceProfileId: input.voiceProfileId ?? null,
     },
   });
 
-  return mapJobResponse(job, draft.id);
+  return {
+    jobId: job.jobId,
+    status: job.status as WorkbenchJobStatus,
+    draftId: draft.id,
+    entityType: "DRAFT",
+    entityId: draft.id,
+  };
 }
 
 export async function selectRewriteVersion(
@@ -1010,7 +667,6 @@ export async function triggerPackagingJob(
   input: PackageDraftInput,
 ): Promise<DraftActionJobResponse> {
   await ensureDraftWorkbenchSeed();
-  await syncDraftJobs(draftId);
   const draft = requireValue(
     await draftRepository.getById(draftId),
     "DRAFT_NOT_FOUND",
@@ -1095,21 +751,25 @@ export async function triggerPackagingJob(
     return mapJobResponse(activeJob, draft.id);
   }
 
-  const job = await jobRepository.create({
-    id: `job_${crypto.randomUUID()}`,
+  const job = await jobsRuntime.enqueueWorkflowJob({
     type: JobType.PACKAGE_DRAFT,
-    status: JobStatus.QUEUED,
     entityType: JobEntityType.DRAFT,
     entityId: draft.id,
     draftId: draft.id,
     topicClusterId: draft.topicClusterId,
     idempotencyKey,
-    triggeredBy: "thread-4-mock",
+    triggeredBy: "draft-workbench",
     input: {
       channels,
       rewriteId: selectedRewriteId ?? null,
     },
   });
 
-  return mapJobResponse(job, draft.id);
+  return {
+    jobId: job.jobId,
+    status: job.status as WorkbenchJobStatus,
+    draftId: draft.id,
+    entityType: "DRAFT",
+    entityId: draft.id,
+  };
 }

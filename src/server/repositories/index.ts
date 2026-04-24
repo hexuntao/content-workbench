@@ -47,6 +47,14 @@ export type {
   PaginationMetadata,
 } from "@/server/repositories/shared";
 export {
+  createSourceRepository,
+  type SourceDetail,
+  type SourceItemLookup,
+  type SourceRepository,
+  type UpdateSourceInput,
+  type UpsertSourceItemInput,
+} from "@/server/repositories/source-repository";
+export {
   type CreateTopicClusterInput,
   createTopicRepository,
   type TopicDetail,

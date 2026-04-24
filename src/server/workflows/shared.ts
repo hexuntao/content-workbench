@@ -13,10 +13,10 @@ import { createRemoteDraft } from "@/server/adapters/channel-draft";
 import { generateContent } from "@/server/adapters/llm";
 import { collectSource } from "@/server/adapters/source";
 import { uploadFile } from "@/server/adapters/storage";
-import { prisma } from "@/server/db";
 import {
   createDraftRepository,
   createPublishRepository,
+  createSourceRepository,
   createTopicRepository,
   type DraftDetail,
   type JobRecord,
@@ -50,6 +50,7 @@ import type {
 const draftRepository = createDraftRepository();
 const topicRepository = createTopicRepository();
 const publishRepository = createPublishRepository();
+const sourceRepository = createSourceRepository();
 
 function isJsonObject(value: Prisma.JsonValue | null): value is Prisma.JsonObject {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -165,23 +166,6 @@ async function getPublishPackageOrThrow(publishPackageId: string): Promise<Publi
   return publishPackage;
 }
 
-async function readRewriteContent(rewriteId: string): Promise<{
-  id: string;
-  title: string | null;
-  content: string;
-} | null> {
-  return prisma.rewriteVersion.findUnique({
-    where: {
-      id: rewriteId,
-    },
-    select: {
-      id: true,
-      title: true,
-      content: true,
-    },
-  });
-}
-
 function buildMasterPrompt(topic: TopicDetail, sourceSummaries: string[]): string {
   const summaryBlock =
     sourceSummaries.length > 0 ? sourceSummaries.join("\n- ") : "No source summary.";
@@ -288,16 +272,7 @@ export function parseWorkflowInput(
 export async function runIngestionWorkflow(
   input: IngestionWorkflowInput,
 ): Promise<IngestionWorkflowOutput> {
-  const source = await prisma.source.findUnique({
-    where: {
-      id: input.sourceId,
-    },
-    select: {
-      id: true,
-      type: true,
-      config: true,
-    },
-  });
+  const source = await sourceRepository.getById(input.sourceId);
 
   if (source === null) {
     throw new JobsServiceError("SOURCE_NOT_FOUND", "Source not found.", 404, {
@@ -318,17 +293,7 @@ export async function runIngestionWorkflow(
 
   for (const item of collected.items) {
     const normalizedUrl = normalizeUrl(item.url);
-    const existing = await prisma.sourceItem.findUnique({
-      where: {
-        sourceId_url: {
-          sourceId: source.id,
-          url: normalizedUrl,
-        },
-      },
-      select: {
-        id: true,
-      },
-    });
+    const existing = await sourceRepository.findItemBySourceAndUrl(source.id, normalizedUrl);
 
     if (existing) {
       dedupedCount += 1;
@@ -336,48 +301,24 @@ export async function runIngestionWorkflow(
       insertedCount += 1;
     }
 
-    await prisma.sourceItem.upsert({
-      where: {
-        sourceId_url: {
-          sourceId: source.id,
-          url: normalizedUrl,
-        },
-      },
-      update: {
-        sourceExternalId: item.externalId,
-        title: item.title,
-        author: item.author,
-        publishedAt: item.publishedAt ? new Date(item.publishedAt) : null,
-        rawContent: item.rawContent,
-        normalizedContent: item.rawContent,
-        summary: item.summary,
-        dedupeHash: buildSourceItemHash(item),
-        metadata: toInputJsonValue(item.metadata),
-      },
-      create: {
-        sourceId: source.id,
-        sourceExternalId: item.externalId,
-        title: item.title,
-        url: normalizedUrl,
-        author: item.author,
-        publishedAt: item.publishedAt ? new Date(item.publishedAt) : null,
-        rawContent: item.rawContent,
-        normalizedContent: item.rawContent,
-        summary: item.summary,
-        dedupeHash: buildSourceItemHash(item),
-        metadata: toInputJsonValue(item.metadata),
-      },
+    await sourceRepository.upsertSourceItemByUrl({
+      sourceId: source.id,
+      sourceExternalId: item.externalId,
+      title: item.title,
+      url: normalizedUrl,
+      author: item.author,
+      publishedAt: item.publishedAt ? new Date(item.publishedAt) : null,
+      rawContent: item.rawContent,
+      normalizedContent: item.rawContent,
+      summary: item.summary,
+      dedupeHash: buildSourceItemHash(item),
+      metadata: toInputJsonValue(item.metadata),
     });
   }
 
-  await prisma.source.update({
-    where: {
-      id: source.id,
-    },
-    data: {
-      status: SourceStatus.ACTIVE,
-      lastRunAt: new Date(),
-    },
+  await sourceRepository.update(source.id, {
+    status: SourceStatus.ACTIVE,
+    lastRunAt: new Date(),
   });
 
   return {
@@ -487,12 +428,12 @@ export async function runPackageDraftWorkflow(
   const draft = await getDraftOrThrow(input.draftId);
   const nextStatus = reduceDraftStatusAfterPackaging(draft.status, draft.id);
   const rewriteRecord = input.rewriteId
-    ? await readRewriteContent(input.rewriteId)
+    ? await draftRepository.getRewriteContent(input.rewriteId)
     : draft.currentRewriteId
-      ? await readRewriteContent(draft.currentRewriteId)
+      ? await draftRepository.getRewriteContent(draft.currentRewriteId)
       : null;
 
-  if (input.rewriteId && rewriteRecord === null) {
+  if (input.rewriteId && (rewriteRecord === null || rewriteRecord.draftId !== draft.id)) {
     throw new JobsServiceError(
       "REWRITE_DOES_NOT_BELONG_TO_DRAFT",
       "Rewrite does not belong to draft.",

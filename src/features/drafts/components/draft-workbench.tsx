@@ -600,7 +600,7 @@ export function DraftWorkbench({
                     </article>
                   ))
                 ) : (
-                  <div className={styles.emptyCard}>还没有改写版本，可以先触发一轮 mock 改写。</div>
+                  <div className={styles.emptyCard}>还没有改写版本，可以先触发一轮标准改写。</div>
                 )}
               </div>
             </div>

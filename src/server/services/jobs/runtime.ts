@@ -21,6 +21,7 @@ export interface JobsRuntime {
     };
   }>;
   retryJob(jobId: string, input?: RetryJobInput): Promise<RetryJobResponse>;
+  cancelJob(jobId: string, reason?: string): Promise<JobResource>;
   processQueuedJobsOnce(limit?: number): Promise<string[]>;
 }
 
@@ -69,6 +70,11 @@ export function createJobsRuntime(dependencies: JobsRuntimeDependencies = {}): J
       const retried = await jobService.retryJob(jobId, input);
       workflowWorker.dispatch(retried.job.id);
       return retried.response;
+    },
+
+    async cancelJob(jobId: string, reason = "Canceled by user."): Promise<JobResource> {
+      const job = await jobService.cancelJob(jobId, reason);
+      return jobService.getJob(job.id);
     },
 
     async processQueuedJobsOnce(limit = 20): Promise<string[]> {

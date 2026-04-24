@@ -130,3 +130,26 @@ export type DraftActionJobResponse = {
   entityType: "DRAFT";
   entityId: string;
 };
+
+export type DraftRewriteListResponse = {
+  items: DraftRewriteItem[];
+};
+
+export type DraftAssetItem = {
+  id: string;
+  type: string;
+  path: string;
+  mimeType: string | null;
+  fileSize: number | null;
+  promptText: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type DraftAssetListResponse = {
+  items: DraftAssetItem[];
+};
+
+export type DraftPublishPackageListResponse = {
+  items: DraftPublishPackageItem[];
+};

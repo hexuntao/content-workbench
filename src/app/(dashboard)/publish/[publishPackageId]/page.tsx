@@ -1,6 +1,8 @@
 import { PublishDetailWorkbench } from "@/features/publish/components/publish-detail-workbench";
 import { getPublishDetail } from "@/features/publish/server/publish-service";
 
+export const dynamic = "force-dynamic";
+
 type PublishDetailPageProps = {
   params: Promise<{
     publishPackageId: string;

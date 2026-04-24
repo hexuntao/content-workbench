@@ -14,6 +14,7 @@ export interface RewriteSummary {
   id: string;
   strategy: string;
   title: string | null;
+  content: string;
   diffSummary: string | null;
   score: number | null;
   isSelected: boolean;
@@ -137,6 +138,12 @@ export interface DraftRepository {
   createRewrite(input: CreateRewriteInput): Promise<RewriteSummary>;
   listRewrites(draftId: string): Promise<RewriteSummary[]>;
   selectRewrite(draftId: string, rewriteId: string): Promise<DraftDetail | null>;
+  getRewriteContent(rewriteId: string): Promise<{
+    id: string;
+    draftId: string;
+    title: string | null;
+    content: string;
+  } | null>;
   createAsset(input: CreateAssetInput): Promise<AssetRecord>;
   listAssets(draftId: string): Promise<AssetRecord[]>;
 }
@@ -145,6 +152,7 @@ const rewriteSelect = {
   id: true,
   strategy: true,
   title: true,
+  content: true,
   diffSummary: true,
   score: true,
   isSelected: true,
@@ -242,6 +250,7 @@ function mapRewrite(record: RewriteRecord): RewriteSummary {
     id: record.id,
     strategy: record.strategy,
     title: record.title,
+    content: record.content,
     diffSummary: record.diffSummary,
     score: record.score,
     isSelected: record.isSelected,
@@ -472,6 +481,27 @@ export function createDraftRepository(database: DatabaseClient = prisma): DraftR
       );
 
       return result;
+    },
+
+    async getRewriteContent(rewriteId: string): Promise<{
+      id: string;
+      draftId: string;
+      title: string | null;
+      content: string;
+    } | null> {
+      const record = await database.rewriteVersion.findUnique({
+        where: {
+          id: rewriteId,
+        },
+        select: {
+          id: true,
+          draftId: true,
+          title: true,
+          content: true,
+        },
+      });
+
+      return record ?? null;
     },
 
     async createAsset(input: CreateAssetInput): Promise<AssetRecord> {

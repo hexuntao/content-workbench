@@ -70,6 +70,23 @@ test("createRemoteDraftForPackage blocks packages that have not passed review ga
   );
 });
 
+test("markPackagePublished blocks packages that have not passed review gate", async (): Promise<void> => {
+  await assert.rejects(
+    async (): Promise<void> => {
+      await markPackagePublished("package_signal_x_article", {
+        publishedUrl: "https://example.com/published/x-article/not-ready",
+        publishedAt: "2026-04-23T09:05:00.000Z",
+        notes: "不应绕过审核门禁。",
+      });
+    },
+    (error: unknown): boolean => {
+      assert.equal(error instanceof PublishWorkbenchError, true);
+      assert.equal((error as PublishWorkbenchError).code, "REVIEW_REQUIRED_BEFORE_PUBLISH");
+      return true;
+    },
+  );
+});
+
 test("markPackagePublished writes publication evidence once export exists", async (): Promise<void> => {
   const detail = await markPackagePublished("package_publish_ready_x_article", {
     publishedUrl: "https://example.com/published/x-article/final",

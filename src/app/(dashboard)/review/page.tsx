@@ -2,6 +2,8 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { ReviewQueueBoard } from "@/features/review/components/review-queue-board";
 import { getReviewQueueSnapshot } from "@/features/review/server/review-service";
 
+export const dynamic = "force-dynamic";
+
 export default async function ReviewPage(): Promise<React.JSX.Element> {
   const snapshot = await getReviewQueueSnapshot();
 

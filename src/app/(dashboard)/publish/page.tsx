@@ -2,6 +2,8 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { PublishBoard } from "@/features/publish/components/publish-board";
 import { getPublishBoardSnapshot } from "@/features/publish/server/publish-service";
 
+export const dynamic = "force-dynamic";
+
 export default async function PublishPage(): Promise<React.JSX.Element> {
   const snapshot = await getPublishBoardSnapshot();
 

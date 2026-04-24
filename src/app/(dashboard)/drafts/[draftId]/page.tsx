@@ -7,6 +7,8 @@ import {
   getDraftWorkbenchDetail,
 } from "@/features/drafts/server/workbench-service";
 
+export const dynamic = "force-dynamic";
+
 type DraftWorkbenchPageProps = {
   params: Promise<{
     draftId: string;

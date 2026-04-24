@@ -1,6 +1,8 @@
 import { ReviewDetailWorkbench } from "@/features/review/components/review-detail-workbench";
 import { getReviewDetail } from "@/features/review/server/review-service";
 
+export const dynamic = "force-dynamic";
+
 type ReviewDetailPageProps = {
   params: Promise<{
     reviewTaskId: string;

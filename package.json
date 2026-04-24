@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "biome check package.json tsconfig.json biome.jsonc next.config.ts src",
     "typecheck": "next typegen && tsc --noEmit",
-    "test": "tsx --test --test-concurrency=1 src/lib/navigation.test.ts src/server/repositories/repositories.test.ts",
+    "test": "node --env-file=.env --import tsx --test --test-concurrency=1 src/lib/navigation.test.ts src/server/repositories/repositories.test.ts src/features/drafts/server/draft-workbench.test.ts src/features/review/server/review-service.test.ts src/features/publish/server/publish-service.test.ts src/features/topics/server/topics-service.test.ts src/server/services/jobs/job-service.test.ts src/server/workflows/worker.test.ts",
     "format": "biome check --write package.json tsconfig.json biome.jsonc next.config.ts src"
   },
   "dependencies": {

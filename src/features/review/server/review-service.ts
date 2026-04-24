@@ -368,7 +368,7 @@ function buildCapabilities(
     canRequestChanges: false,
     canResubmit: false,
     disabledReason:
-      draft.status === DraftStatus.APPROVED
+      draft.status === DraftStatus.APPROVED || draft.status === DraftStatus.READY_TO_PUBLISH
         ? "这轮审核已经完成，不应在详情页再次改写结论。"
         : "当前任务已完成。",
   };
@@ -768,7 +768,7 @@ export async function approveReviewTask(
     });
 
     await draftTx.update(draft.id, {
-      status: DraftStatus.APPROVED,
+      status: DraftStatus.READY_TO_PUBLISH,
     });
 
     return nextTask;

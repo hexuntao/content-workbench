@@ -41,7 +41,7 @@ test.after(async (): Promise<void> => {
   await prisma.$disconnect();
 });
 
-test("approveReviewTask marks the task approved and the draft approved", async (): Promise<void> => {
+test("approveReviewTask marks the task approved and the draft ready to publish", async (): Promise<void> => {
   const detail = await approveReviewTask("review_task_signal", {
     comments: "判断成立，可以进入发布准备。",
     checklist: {
@@ -54,10 +54,10 @@ test("approveReviewTask marks the task approved and the draft approved", async (
   });
 
   assert.equal(detail.task.status, ReviewStatus.APPROVED);
-  assert.equal(detail.draft.status, DraftStatus.APPROVED);
+  assert.equal(detail.draft.status, DraftStatus.READY_TO_PUBLISH);
 
   const storedDraft = await draftRepository.getById("draft_review_signal");
-  assert.equal(storedDraft?.status, DraftStatus.APPROVED);
+  assert.equal(storedDraft?.status, DraftStatus.READY_TO_PUBLISH);
 });
 
 test("requestChangesForReviewTask moves the draft back to rejected", async (): Promise<void> => {
